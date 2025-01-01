@@ -5,7 +5,7 @@ import javax.swing.JFrame;
 public class Main {
     public static void main(String[] args) throws Exception {
 
-        JFrame window = new JFrame("Lost Maze");
+        JFrame window = new JFrame("Suon");
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         window.setResizable(false);
         
