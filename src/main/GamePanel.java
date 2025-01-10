@@ -12,7 +12,8 @@ import java.awt.Graphics2D;
 
 public class GamePanel extends JPanel implements Runnable {
 
-    // SCREEN SETTINGS
+	private static final long serialVersionUID = 1L;
+	// SCREEN SETTINGS
     final int originalTileSize = 16; // 16x16 tile
     public final int scale = 3;
     public final int tileSize = originalTileSize * scale; // 48x48 tile
