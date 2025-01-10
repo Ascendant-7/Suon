@@ -86,7 +86,8 @@ def main():
     pave_path()
     loop_2d_grid(grid_side, adjust_wall)
     # display_path()
-    with open('./res/maps/test_map.txt', 'w') as f:
+    filename = input('Enter the name of the map file: ').strip('"')
+    with open(filename, 'w') as f:
         loop_2d_grid(grid_side, lambda row, col: f.write(f'{grid[row][col]} ') if col < grid_side-1 else f.write(f'{grid[row][col]}\n'))
     display_grid()
 
