@@ -1,0 +1,9 @@
+# Ignore VSCode settings
+.vscode/
+
+# Ignore Eclipse settings except .project and .classpath
+.settings/
+.metadata/
+*.launch
+bin/
+target/
