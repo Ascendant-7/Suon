@@ -17,6 +17,7 @@ public class Player extends Entity{
 
     public final int screenX;
     public final int screenY;
+    int hasKey = 0;
     
     public Player(GamePanel gp, KeyHandler keyH) {
         this.gp = gp;
@@ -28,6 +29,8 @@ public class Player extends Entity{
         solidArea = new Rectangle();
         solidArea.x = 3*gp.scale;
         solidArea.y = 9*gp.scale;
+        solidAreaDefaultX = solidArea.x;
+        solidAreaDefaultY = solidArea.y;
         solidArea.width = 9*gp.scale;
         solidArea.height = 6*gp.scale;
 
@@ -60,7 +63,7 @@ public class Player extends Entity{
     }
     public void update() {
 
-        boolean idle = false;
+        idle = false;
         if (keyH.upPressed) {
             direction = "up";
         }
@@ -78,6 +81,13 @@ public class Player extends Entity{
         // CHECK TILE COLLISION
         collisionOn = false;
         gp.cChecker.checkTile(this);
+
+        // CHECK OBJECT COLLISION
+        if (!idle) {
+            int objIndex = gp.cChecker.checkObject(this, true);
+            pickUpObject(objIndex);
+        }
+
 
         // IF COLLISION IS FALSE, PLAYER CAN MOVE
         if (!collisionOn && !idle) {
@@ -99,6 +109,31 @@ public class Player extends Entity{
             spriteCounter = 0;
         }
     }
+
+    public void pickUpObject(int i) {
+        if (i != 999) {
+            
+            String objName = gp.obj[i].name;
+
+            switch (objName) {
+                case "Key":
+                    gp.playSFX(1);
+                    hasKey++;
+                    gp.obj[i] = null;
+                    System.out.println("You picked up a key!");
+                    break;
+                case "Door":
+                    if (hasKey > 0) {
+                        gp.playSFX(2);
+                        gp.obj[i] = null;
+                        hasKey--;
+                        System.out.println("You unlocked a door!");
+                    }
+                    break;
+            }
+        }
+    }
+
     public void draw(Graphics2D g2) {
 
         BufferedImage image = null;
