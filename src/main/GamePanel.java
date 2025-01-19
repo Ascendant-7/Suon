@@ -34,15 +34,21 @@ public class GamePanel extends JPanel implements Runnable {
     // GAME COMPONENTS
     // thread and managers
     Thread gameThread;
-    KeyHandler keyH = new KeyHandler();
+    KeyHandler keyH = new KeyHandler(this);
     TileManager tileM = new TileManager(this);
     public CollisionChecker cChecker = new CollisionChecker(this);
     public AssetSetter aSetter = new AssetSetter(this);
-    public Sound sound = new Sound();
+    public Sound music = new Sound();
+    public Sound sfx = new Sound();
     public UI ui = new UI(this);
     //players and objects
     public Player player = new Player(this, keyH);
     public SuperObject[] obj = new SuperObject[10];
+    // game states
+    public int gameState;
+    public final int titleState = 0;
+    public final int playState = 1;
+    public final int pauseState = 2;
 
     // CONSTRUCTOR
     public GamePanel() {
@@ -56,8 +62,9 @@ public class GamePanel extends JPanel implements Runnable {
 
     public void setUpGame() {
 
-        playMusic(0);
         aSetter.setObject();
+        playMusic(0);
+        gameState = titleState;
     }
 
     // START FUNCTION
@@ -97,10 +104,12 @@ public class GamePanel extends JPanel implements Runnable {
     // UPDATE FUNCTION
     public void update() {
 
+        if (gameState == playState) {
+            player.update();
+        }
         if (keyH.escapePressed) {
             System.exit(0);
         }
-        player.update();
     }
     // PAINT COMPONENT FUNCTION
     public void paintComponent(Graphics g) {
@@ -114,17 +123,28 @@ public class GamePanel extends JPanel implements Runnable {
             drawStart = System.nanoTime();
         }
 
-        tileM.draw(g2);
-
-        for (SuperObject object : obj) {
-            if (object != null) {
-                object.draw(g2, this);
-            }
+        // TITLE SCREEN
+        if (gameState == titleState) {
+            ui.draw(g2);
         }
+        // OTHERS
+        else {
+            // TILE
+            tileM.draw(g2);
 
-        player.draw(g2);
+            // OBJECTS
+            for (SuperObject object : obj) {
+                if (object != null) {
+                    object.draw(g2, this);
+                }
+            }
 
-        ui.draw(g2);
+            // PLAYER
+            player.draw(g2);
+
+            // UI
+            ui.draw(g2);
+        }
 
         // DEBUG
         if (keyH.checkDrawTime) {
@@ -138,17 +158,17 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     public void playMusic(int i) {
-        sound.setFile(i);
-        sound.play();
-        sound.loop();
+        music.setFile(i);
+        music.play();
+        music.loop();
     }
 
     public void stopMusic() {
-        sound.stop();
+        music.stop();
     }
 
     public void playSFX(int i) {
-        sound.setFile(i);
-        sound.play();
+        sfx.setFile(i);
+        sfx.play();
     }
 }
