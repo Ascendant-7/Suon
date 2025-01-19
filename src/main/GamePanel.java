@@ -39,6 +39,7 @@ public class GamePanel extends JPanel implements Runnable {
     public CollisionChecker cChecker = new CollisionChecker(this);
     public AssetSetter aSetter = new AssetSetter(this);
     public Sound sound = new Sound();
+    public UI ui = new UI(this);
     //players and objects
     public Player player = new Player(this, keyH);
     public SuperObject[] obj = new SuperObject[10];
@@ -105,8 +106,13 @@ public class GamePanel extends JPanel implements Runnable {
     public void paintComponent(Graphics g) {
  
         super.paintComponent(g);
-
         Graphics2D g2 = (Graphics2D)g;
+
+        // DEBUG
+        long drawStart = 0;
+        if (keyH.checkDrawTime) {
+            drawStart = System.nanoTime();
+        }
 
         tileM.draw(g2);
 
@@ -117,6 +123,16 @@ public class GamePanel extends JPanel implements Runnable {
         }
 
         player.draw(g2);
+
+        ui.draw(g2);
+
+        // DEBUG
+        if (keyH.checkDrawTime) {
+            long drawEnd = System.nanoTime();
+            long passed = drawEnd - drawStart;
+            System.out.println("Draw Time: "+passed);
+        }
+        
 
         g2.dispose();
     }

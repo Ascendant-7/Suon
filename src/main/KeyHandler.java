@@ -9,6 +9,8 @@ public class KeyHandler implements KeyListener{
     public boolean upPressed, downPressed, leftPressed, rightPressed;
     // game flags
     public boolean escapePressed;
+    // debug flags
+    public boolean checkDrawTime;
     
     @Override
     public void keyTyped(KeyEvent e) {
@@ -34,6 +36,11 @@ public class KeyHandler implements KeyListener{
 
         if (code == KeyEvent.VK_ESCAPE) {
             escapePressed = true;
+        }
+
+        // DEBUG
+        if (code == KeyEvent.VK_T) {
+            checkDrawTime = !checkDrawTime;
         }
     }
 
