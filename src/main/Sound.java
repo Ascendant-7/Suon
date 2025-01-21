@@ -10,6 +10,7 @@ public class Sound {
 
     Clip clip;
     URL[] soundURL = new URL[30];
+    public long clipTime = 0;
 
     public Sound() {
 
@@ -33,6 +34,7 @@ public class Sound {
 
     public void play() {
 
+        clip.setMicrosecondPosition(clipTime);
         clip.start();
     }
     
@@ -42,7 +44,12 @@ public class Sound {
     }
 
     public void stop() {
+        clipTime = 0;
+        clip.stop();
+    }
 
+    public void pause() {
+        clipTime = clip.getMicrosecondPosition();
         clip.stop();
     }
 }

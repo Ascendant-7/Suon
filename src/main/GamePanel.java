@@ -2,14 +2,20 @@ package main;
 
 import javax.swing.JPanel;
 
+import entity.Entity;
 import entity.Player;
-import object.SuperObject;
 import tile.TileManager;
 
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 public class GamePanel extends JPanel implements Runnable {
 
@@ -19,10 +25,16 @@ public class GamePanel extends JPanel implements Runnable {
     public final int scale = 3;
     public final int tileSize = originalTileSize * scale; // 48x48 tile
 
-    public final int maxScreenCol = 16;
+    public final int maxScreenCol = 20;
     public final int maxScreenRow = 12;
-    public final int screenWidth = maxScreenCol * tileSize; // 768 px
+    public final int screenWidth = maxScreenCol * tileSize; // 960 px
     public final int screenHeight = maxScreenRow * tileSize; // 576 px
+
+    // FULLSCREEN SETTING
+    int screenWidth2 = screenWidth;
+    int screenHeight2 = screenHeight;
+    BufferedImage tempScreen;
+    Graphics2D g2;
 
     // WORLD SETTINGS
     public final int mapWorldCol = 51;
@@ -32,6 +44,8 @@ public class GamePanel extends JPanel implements Runnable {
     int FPS = 60;
 
     // GAME COMPONENTS
+    // tools
+    public UtilityTool uTool = new UtilityTool(this);
     // thread and managers
     Thread gameThread;
     KeyHandler keyH = new KeyHandler(this);
@@ -43,7 +57,9 @@ public class GamePanel extends JPanel implements Runnable {
     public UI ui = new UI(this);
     //players and objects
     public Player player = new Player(this, keyH);
-    public SuperObject[] obj = new SuperObject[10];
+    public Entity[] obj = new Entity[10];
+    public Entity[] monsters = new Entity[2];
+    ArrayList<Entity> entityList = new ArrayList<>();
     // game states
     public int gameState;
     public final int titleState = 0;
@@ -63,8 +79,24 @@ public class GamePanel extends JPanel implements Runnable {
     public void setUpGame() {
 
         aSetter.setObject();
-        playMusic(0);
+        aSetter.spawnMonsters();
         gameState = titleState;
+
+        tempScreen = new BufferedImage(screenWidth, screenHeight, BufferedImage.TYPE_INT_ARGB);
+        g2 = (Graphics2D)tempScreen.getGraphics();
+
+        setFullScreen();
+    }
+
+    public void setFullScreen() {
+        // GET LOCAL SCREEN DEVICE
+        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        GraphicsDevice gd = ge.getDefaultScreenDevice();
+        gd.setFullScreenWindow(Main.window);
+        
+        // GET FULLSCREEN WIDTH AND HEIGHT
+        screenWidth2 = Main.window.getWidth();
+        screenHeight2 = Main.window.getHeight();
     }
 
     // START FUNCTION
@@ -94,7 +126,8 @@ public class GamePanel extends JPanel implements Runnable {
             if (delta >= 1) {
                 
                 update();
-                repaint();
+                drawToTempScreen();
+                drawToScreen();
                 delta = 0;
             }
         }
@@ -104,57 +137,72 @@ public class GamePanel extends JPanel implements Runnable {
     // UPDATE FUNCTION
     public void update() {
 
-        if (gameState == playState) {
+        if (gameState == playState && ui.gameSubState == 0) {
+            // PLAYER
             player.update();
-        }
-        if (keyH.escapePressed) {
-            System.exit(0);
+
+            // MONSTERS
+            for (Entity e : monsters) {
+                if (e != null) {
+                    e.update();
+                }
+            }
         }
     }
-    // PAINT COMPONENT FUNCTION
-    public void paintComponent(Graphics g) {
- 
-        super.paintComponent(g);
-        Graphics2D g2 = (Graphics2D)g;
-
-        // DEBUG
-        long drawStart = 0;
-        if (keyH.checkDrawTime) {
-            drawStart = System.nanoTime();
-        }
-
+    public void drawToTempScreen() {
         // TITLE SCREEN
         if (gameState == titleState) {
             ui.draw(g2);
         }
         // OTHERS
         else {
+            g2.setColor(Color.black);
+            g2.fillRect(0, 0, screenWidth, screenHeight);
             // TILE
             tileM.draw(g2);
 
-            // OBJECTS
-            for (SuperObject object : obj) {
-                if (object != null) {
-                    object.draw(g2, this);
+            // ADD ENTITY LIST
+            entityList.add(player);
+
+            for (Entity m : monsters) {
+                if (m != null) {
+                    entityList.add(m);
                 }
             }
 
-            // PLAYER
-            player.draw(g2);
+            for (Entity o : obj) {
+                if (o != null) {
+                    entityList.add(o);
+                }
+            }
 
+            // SORT
+            Collections.sort(entityList, new Comparator<Entity>() {
+
+                @Override
+                public int compare(Entity e1, Entity e2) {
+
+                    int result = Integer.compare(e1.worldY, e2.worldY);
+                    return result;
+                }
+                
+            });
+
+            // DRAW ENTITIES
+            for (Entity e : entityList) {
+                e.draw(g2);
+            }
+            entityList.clear();
             // UI
             ui.draw(g2);
         }
+    }
 
-        // DEBUG
-        if (keyH.checkDrawTime) {
-            long drawEnd = System.nanoTime();
-            long passed = drawEnd - drawStart;
-            System.out.println("Draw Time: "+passed);
-        }
-        
+    public void drawToScreen() {
 
-        g2.dispose();
+        Graphics g = getGraphics();
+        g.drawImage(tempScreen, 0, 0, screenWidth2, screenHeight2, null);
+        g.dispose();
     }
 
     public void playMusic(int i) {
@@ -163,8 +211,11 @@ public class GamePanel extends JPanel implements Runnable {
         music.loop();
     }
 
-    public void stopMusic() {
-        music.stop();
+    public void stopMusic(boolean pause) {
+        if (pause)
+            music.pause();
+        else
+            music.stop();
     }
 
     public void playSFX(int i) {

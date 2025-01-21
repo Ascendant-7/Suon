@@ -1,5 +1,6 @@
 package main;
 
+import monster.Silhouette;
 import object.ChestObject;
 import object.DoorObject;
 import object.KeyObject;
@@ -40,5 +41,11 @@ public class AssetSetter {
         gp.obj[6] = new ChestObject(gp);
         gp.obj[6].worldX = 45 * gp.tileSize;
         gp.obj[6].worldY = 31 * gp.tileSize;
+    }
+
+    public void spawnMonsters() {
+        gp.monsters[0] = new Silhouette(gp);
+        gp.monsters[0].worldX = 27 * gp.tileSize;
+        gp.monsters[0].worldY = 25 * gp.tileSize;
     }
 }

@@ -1,36 +1,33 @@
 package entity;
 
+import java.awt.AlphaComposite;
 // import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
-
-import javax.imageio.ImageIO;
 
 import main.GamePanel;
 import main.KeyHandler;
-import main.UtilityTool;
 
 public class Player extends Entity{
 
-    GamePanel gp;
     KeyHandler keyH;
 
     public final int screenX;
     public final int screenY;
     public int hasKey = 0;
     int standCounter = 0;
-    int pixelCounter = 0;
+
+    long fatigueT1;
+    long fatigueT2;
+
     
     public Player(GamePanel gp, KeyHandler keyH) {
-        this.gp = gp;
+        super(gp);
         this.keyH = keyH;
 
         screenX = gp.screenWidth/2 - gp.tileSize/2;
         screenY = gp.screenHeight/2 - gp.tileSize/2;
 
-        solidArea = new Rectangle();
         solidArea.x = 1;
         solidArea.y = 1;
         solidAreaDefaultX = solidArea.x;
@@ -48,34 +45,30 @@ public class Player extends Entity{
         worldY = gp.tileSize * gp.mapWorldRow/2 - gp.tileSize/2;
         speed = 4;
         direction = "down";
+
+        // PLAYER STATUS
+        maxLife = 100;
+        life = maxLife;
+        maxStamina = 100;
+        stamina = maxStamina;
     }
     public void getPlayerImage() {
-        up1 = setup("player_up1");
-        up2 = setup("player_up2");
-        down1 = setup("player_down1");
-        down2 = setup("player_down2");
-        left1 = setup("player_left1");
-        left2 = setup("player_left2");
-        right1 = setup("player_right1");
-        right2 = setup("player_right2");
+        String suffix = "/player/";
+        up1 = gp.uTool.setup(suffix+"player_up1");
+        up2 = gp.uTool.setup(suffix+"player_up2");
+        down1 = gp.uTool.setup(suffix+"player_down1");
+        down2 = gp.uTool.setup(suffix+"player_down2");
+        left1 = gp.uTool.setup(suffix+"player_left1");
+        left2 = gp.uTool.setup(suffix+"player_left2");
+        right1 = gp.uTool.setup(suffix+"player_right1");
+        right2 = gp.uTool.setup(suffix+"player_right2");
     }
 
-    public BufferedImage setup(String imageName) {
-
-        UtilityTool uTool = new UtilityTool();
-        BufferedImage image = null;
-
-        try {
-
-            image = ImageIO.read(getClass().getResourceAsStream("/player/"+imageName+".png"));
-            image = uTool.scaleImage(image, gp.tileSize, gp.tileSize);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return image;
-    }
+    @Override
     public void update() {
+        // CODE FOR PLAYER'S IDLE STATE
         if (idle) {
+            // CHECK FOR MOVEMENT INPUTS
             if (keyH.upPressed) {
                 direction = "up";
                 idle = false;
@@ -91,9 +84,8 @@ public class Player extends Entity{
             else if (keyH.rightPressed) {
                 direction = "right";
                 idle = false;
-            } else
-                idle = true;
-    
+            }
+
             // RESET COLLISION FLAGS
             collisionOn = false;
             tileCollided = false;
@@ -102,9 +94,10 @@ public class Player extends Entity{
             gp.cChecker.checkTile(this);
     
             // CHECK OBJECT COLLISION
-            int objIndex = gp.cChecker.checkObject(this, true);
+            int objIndex = gp.cChecker.checkObject(this);
             pickUpObject(objIndex);
 
+            // MINOR ANIMATION FIXES
             if (idle) {
                 standCounter++;
                 if (standCounter == 20) {
@@ -114,6 +107,7 @@ public class Player extends Entity{
             }
         }
         else {
+            // SUMMARIZE BOTH COLLISION CHECKS
             collisionOn = tileCollided || objCollided;
 
             // IF COLLISION IS FALSE, PLAYER CAN MOVE
@@ -126,6 +120,7 @@ public class Player extends Entity{
                 }
             }
             
+            // ANIMATION
             spriteCounter++;
             
             if (spriteCounter > 12) { // limit the change to ten frames per second, instead of 60
@@ -137,6 +132,7 @@ public class Player extends Entity{
                 spriteCounter = 0;
             }
 
+            // PLAYER TILE-BASED MOVEMENT CHANGES
             pixelCounter += speed;
 
             if (pixelCounter == 48) {
@@ -144,6 +140,43 @@ public class Player extends Entity{
                 pixelCounter = 0;
             }
         }
+        if (fatigued) {
+            if (speed != 2 && pixelCounter == 0) {
+                speed = 2;
+            }
+            if (!keyH.shiftPressed) {
+                fatigueT2 = System.currentTimeMillis();
+                if (fatigueT2-fatigueT1 > 3000 && stamina > 30) {
+                    fatigued = false;
+                }
+                else {
+                    stamina += 0.2;
+                }
+            }
+        }
+        else {
+            if (keyH.shiftPressed && !idle) {
+                if (stamina <= 0) {
+                    fatigued = true;
+                    fatigueT1 = System.currentTimeMillis();
+                }
+                else {
+                    if (speed != 6  && pixelCounter == 0) {
+                        speed = 6;
+                    }
+                    stamina-=0.4;
+                }
+            }
+            else if (speed != 4  && pixelCounter == 0) {
+                speed = 4;
+            }
+            else if (stamina < 100) {
+                stamina+=0.2;
+            }
+        }
+
+        
+        gp.cChecker.checkMonster(this, gp.monsters);
     }
 
     public void pickUpObject(int i) {
@@ -170,14 +203,15 @@ public class Player extends Entity{
                     }
                     break;
                 case "Chest":
-                    gp.ui.gameFinished = true;
-                    gp.stopMusic();
+                    gp.ui.gameSubState = 1;
+                    gp.stopMusic(false);
                     gp.playSFX(3);
                     break;
             }
         }
     }
 
+    @Override
     public void draw(Graphics2D g2) {
 
         BufferedImage image = null;
@@ -208,7 +242,17 @@ public class Player extends Entity{
                     image = right2;
                 break;
         }
+
+        if (hurtTime > 0) {
+            // TRANSPARENT
+            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
+            hurtTime--;
+        }
         g2.drawImage(image, screenX, screenY, null);
+
+        // RESET TRANSPARENCY
+        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
+    
 
         // FOR DEBUGGING COLLIDER AREA (ENABLE COLLIDER VISUAL)
         // g2.setColor(Color.red);
