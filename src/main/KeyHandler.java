@@ -77,18 +77,19 @@ public class KeyHandler implements KeyListener{
                     switch (gp.ui.commandNum) {
                         case 0:
                             // change character to Don
-                            gp.gameState = gp.playState;
-                            gp.ui.gameSubState = 0;
-                            gp.playMusic(0);
+                            gp.gameState = gp.loadingState;
+                            gp.ui.gameSubState = 1;
+                            gp.ui.visibleDuration = 25;
                             break;
                         case 1:
                             // change character to Emma
-                            gp.gameState = gp.playState;
-                            gp.ui.gameSubState = 0;
-                            gp.playMusic(0);
+                            gp.gameState = gp.loadingState;
+                            gp.ui.gameSubState = 1;
+                            gp.ui.visibleDuration = 25;
                             break;
                         case 2:
                             gp.ui.gameSubState = 0;
+                            gp.ui.commandNum = 0;
                             break;
                     }
                 }

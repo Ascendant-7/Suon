@@ -14,6 +14,7 @@ import main.GamePanel;
 public class TileManager {
 
     GamePanel gp;
+    public EllersAlgorithm algorithm;
     public Tile[] tile;
     public int mapTileNum[][];
     public TileManager(GamePanel gp) {
@@ -24,7 +25,10 @@ public class TileManager {
         mapTileNum = new int[gp.mapWorldCol][gp.mapWorldRow];
         
         getTileImage();
-        loadMap("/maps/test_map.txt");
+        // loadMap("/maps/test_map.txt");
+        algorithm = new EllersAlgorithm(gp);
+        mapTileNum = algorithm.loadNewMap();
+        
     }
 
     public void getTileImage() {
@@ -41,6 +45,7 @@ public class TileManager {
             tile[index].image = ImageIO.read(getClass().getResourceAsStream("/tiles/"+imagePath+".png"));
             tile[index].image = gp.uTool.scaleImage(tile[index].image, gp.tileSize, gp.tileSize);
             tile[index].collision = collision;
+            tile[index].name = imagePath;
         } catch (IOException e) {
             e.printStackTrace();
         }

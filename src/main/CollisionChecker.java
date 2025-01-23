@@ -1,5 +1,7 @@
 package main;
 
+import java.util.ArrayList;
+
 import entity.Entity;
 import entity.Player;
 
@@ -146,7 +148,7 @@ public class CollisionChecker {
 
     }
 
-    public void checkMonster(Player entity, Entity[] target) {
+    public void checkMonster(Player entity, ArrayList<Entity> target) {
 
         for (Entity e : target) {
             

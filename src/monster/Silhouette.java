@@ -46,7 +46,7 @@ public class Silhouette extends Entity {
                 }
             }
             // RANDOMLY USE ACCESSIBLE TILES
-            int index = random.nextInt(accessIndex);
+            int index = random.nextInt(accessIndex); // ACCESS BOUND IS < 1
             accessIndex = 0;
             direction = accessible[index];
             for (int i = 0; i < accessible.length; i++) {

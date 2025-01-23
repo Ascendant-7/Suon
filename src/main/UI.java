@@ -1,5 +1,6 @@
 package main;
 
+import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontFormatException;
@@ -22,6 +23,13 @@ public class UI {
     BufferedImage background;
     public int commandNum = 0;
     public int gameSubState = 0;
+    
+    int visibleDuration = 60;
+    int loadedMessages = 0;
+    int loopCount = 0;
+    float transparency = 0f;
+    float progress = 0f;
+    int dots = 0;
 
     public UI(GamePanel gp) {
 
@@ -48,6 +56,10 @@ public class UI {
 
         g2.setFont(maruMonica);
 
+        // LOADING STATE
+        if (gp.gameState == gp.loadingState) {
+            drawLoadingScreen();
+        }
         // TITLE STATE
         if (gp.gameState == gp.titleState) {
             drawTitleScreen();
@@ -61,6 +73,87 @@ public class UI {
             drawPauseScreen();
         }
     }
+    public void drawLoadingScreen() {
+        // FIRST LOADING SCREEN - ENTERING THE GAME
+        if (gameSubState == 0) {
+            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
+            g2.setColor(Color.black);
+            g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+            
+            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, transparency));
+            switch (loadedMessages) {
+                case 0:
+                    gp.uTool.drawText(g2, "SUON", 0, 0, Font.BOLD, 100F, Color.white, false, true, true, false);
+                    fade();
+                    break;
+                case 1:
+                    gp.uTool.drawText(g2, "Made by Group 5 OOP", 0, 0, Font.BOLD, 60F, Color.white, false, true, true, false);
+                    fade();
+                    break;
+                case 2:
+                    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
+                    gp.gameState = gp.titleState;
+                    loadedMessages = 0;
+                    return;
+            }
+        }
+        else if (gameSubState == 1) {
+            g2.setColor(Color.black);
+            g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+            String text = "Loading Map";
+            if (visibleDuration <= 0) {
+                dots = (dots+1) % 4;
+                visibleDuration = 25;
+            }
+            else {
+                visibleDuration--;
+            }
+            for (int i = 0; i < dots; i++) {
+                text+=".";
+            }
+            gp.uTool.drawText(g2, text, 0, 0, Font.BOLD, 100F, Color.white, false, true, true, false);
+
+            g2.setColor(Color.green);
+            g2.fillRect(0, gp.screenHeight-50, (int)(gp.screenWidth*progress), 50);
+            if (progress < 1) {
+                progress+=0.01;
+            }
+            else {
+                gp.gameState = gp.playState;
+                gameSubState = 0;
+                progress = 0f;
+                gp.playMusic(0);
+                return;
+            }
+        }
+    }
+    public void fade() {
+        switch (loopCount) {
+            case 0:
+                if (transparency < 1f)
+                    transparency+=0.05;
+                if (transparency >= 1f) {
+                    transparency = 1f;
+                    visibleDuration--;
+                }
+                if (visibleDuration < 0) {
+                    visibleDuration = 60;
+                    loopCount++;
+                }
+                break;
+            case 1:
+                transparency-=0.05;
+                if (transparency <= 0f) {
+                    transparency = 0f;
+                    loopCount++;
+                }
+                break;
+            case 2:
+                loadedMessages++;
+                loopCount = 0;
+                break;
+        }
+    }
     public void drawTitleScreen() {
         // MAIN MENU
         if (gameSubState == 0) {
@@ -69,17 +162,16 @@ public class UI {
     
             // MAIN TITLE
             int x = 0, y = gp.tileSize*3;
-            gp.uTool.drawText(g2, "SUON", x, y, Font.BOLD, 86F, Color.white, true, true, false);
+            gp.uTool.drawText(g2, "SUON", x, y, Font.BOLD, 86F, Color.white, true, true, false, false);
 
             // Subtitle 1
             x = gp.tileSize;
             y = gp.tileSize;
-            gp.uTool.drawText(g2, "Greetings, player! Welcome to...", x, y, Font.BOLD, 25F, Color.white, true, false, false);
+            gp.uTool.drawText(g2, "Greetings, player! Welcome to...", x, y, Font.BOLD, 25F, Color.white, true, false, false, false);
 
             // Subtitle 2
-            x = gp.tileSize*9;
             y = gp.tileSize*4;
-            gp.uTool.drawText(g2, "Maze Game", x, y, Font.BOLD, 25F, Color.white, true, false, false);
+            gp.uTool.drawText(g2, "Maze Game", x, y, Font.BOLD, 25F, Color.white, true, true, false, false);
     
             // PLAYER IMAGE
             // x += gp.tileSize;
@@ -88,35 +180,35 @@ public class UI {
     
             // MENU
             y = gp.tileSize*6;
-            gp.uTool.drawText(g2, "NEW GAME", x, y, Font.BOLD, 40F, Color.white, true, true, commandNum == 0);
+            gp.uTool.drawText(g2, "NEW GAME", x, y, Font.BOLD, 40F, Color.white, true, true, false, commandNum == 0);
 
             y += gp.tileSize + 10;
-            gp.uTool.drawText(g2, "LOAD GAME", x, y, Font.BOLD, 40F, Color.white, true, true, commandNum == 1);
+            gp.uTool.drawText(g2, "LOAD GAME", x, y, Font.BOLD, 40F, Color.white, true, true, false, commandNum == 1);
             
             y += gp.tileSize + 10;
-            gp.uTool.drawText(g2, "RULES & TUTORIAL", x, y, Font.BOLD, 40F, Color.white, true, true, commandNum == 2);
+            gp.uTool.drawText(g2, "RULES & TUTORIAL", x, y, Font.BOLD, 40F, Color.white, true, true, false, commandNum == 2);
             
             y += gp.tileSize + 10;
-            gp.uTool.drawText(g2, "OPTIONS", x, y, Font.BOLD, 40F, Color.white, true, true, commandNum == 3);
+            gp.uTool.drawText(g2, "OPTIONS", x, y, Font.BOLD, 40F, Color.white, true, true, false, commandNum == 3);
     
             y += gp.tileSize + 10;
-            gp.uTool.drawText(g2, "QUIT", x, y, Font.BOLD, 40F, Color.white, true, true, commandNum == 4);
+            gp.uTool.drawText(g2, "QUIT", x, y, Font.BOLD, 40F, Color.white, true, true, false, commandNum == 4);
         }
         else if (gameSubState == 1) {
             g2.setColor(Color.black);
             g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
-            
+
             int x = 0, y = gp.tileSize*3;
-            gp.uTool.drawText(g2, "Select your character.", x, y, Font.BOLD, 42, Color.white, false, true, false);
+            gp.uTool.drawText(g2, "Select your character.", x, y, Font.BOLD, 42, Color.white, false, true, false, false);
 
             y += gp.tileSize*3;
-            gp.uTool.drawText(g2, "Don", x, y, Font.BOLD, 42F, Color.white, false, true, commandNum == 0);
+            gp.uTool.drawText(g2, "Don", x, y, Font.BOLD, 42F, Color.white, false, true, false, commandNum == 0);
             
             y += gp.tileSize;
-            gp.uTool.drawText(g2, "Emma", x, y, Font.BOLD, 42F, Color.white, false, true, commandNum == 1);
+            gp.uTool.drawText(g2, "Emma", x, y, Font.BOLD, 42F, Color.white, false, true, false, commandNum == 1);
             
             y += gp.tileSize*2;
-            gp.uTool.drawText(g2, "Back", x, y, Font.BOLD, 42F, Color.white, false, true, commandNum == 2);
+            gp.uTool.drawText(g2, "Back", x, y, Font.BOLD, 42F, Color.white, false, true, false, commandNum == 2);
         }
         
     }
@@ -189,16 +281,20 @@ public class UI {
         else if (gameSubState == 1) {
 
             int x = 0, y = gp.screenHeight/2 - (gp.tileSize*3);
-            gp.uTool.drawText(g2, "You found the final key!", x, y, Font.PLAIN, 40F, Color.white, false, true, false);
+            gp.uTool.drawText(g2, "You found the final key!", x, y, Font.PLAIN, 40F, Color.white, false, true, false, false);
             
             y += gp.tileSize*5;
-            gp.uTool.drawText(g2, "Congratulations!", x, y, Font.BOLD, 80F, Color.yellow, false, true, false);
+            gp.uTool.drawText(g2, "Congratulations!", x, y, Font.BOLD, 80F, Color.yellow, false, true, false, false);
     
             y += gp.tileSize*2;
-            gp.uTool.drawText(g2, "---Press ENTER to go back to menu---", x, y, Font.PLAIN, 32F, Color.white, false, true, false);
+            gp.uTool.drawText(g2, "---Press ENTER to go back to menu---", x, y, Font.PLAIN, 32F, Color.white, false, true, false, false);
         }
     }
     public void drawPauseScreen() {
-        gp.uTool.drawText(g2, "PAUSED", 0, gp.screenHeight/2, Font.PLAIN, 80F, Color.white, false, true, false);
+            g2.setColor(Color.black);
+            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
+            g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
+        gp.uTool.drawText(g2, "PAUSED", 0, gp.screenHeight/2, Font.PLAIN, 80F, Color.white, false, true, false, false);
     }
 }

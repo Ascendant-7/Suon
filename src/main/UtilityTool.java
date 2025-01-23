@@ -41,13 +41,19 @@ public class UtilityTool {
         int length = (int)g2.getFontMetrics().getStringBounds(text, g2).getWidth();
         return gp.screenWidth/2 - length/2; 
     }
+    public int getScreenCenterY(Graphics2D g2, String text) {
+        // int length = (int)g2.getFontMetrics().getStringBounds(text, g2).getHeight();
+        return gp.screenHeight/2; 
+    }
 
-    public void drawText(Graphics2D g2, String text, int X, int Y, int style, float size, Color color, boolean shadow, boolean centerX, boolean drawSelection) {
+    public void drawText(Graphics2D g2, String text, int X, int Y, int style, float size, Color color, boolean shadow, boolean centerX, boolean centerY, boolean drawSelection) {
         g2.setFont(g2.getFont().deriveFont(style, size));
         int x = X;
         int y = Y;
         if (centerX) 
             x = getScreenCenterX(g2, text);
+        if (centerY) 
+            y = getScreenCenterY(g2, text);
         // draw shadow if required
         if (shadow) {
             g2.setColor(Color.black);

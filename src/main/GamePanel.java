@@ -49,7 +49,7 @@ public class GamePanel extends JPanel implements Runnable {
     // thread and managers
     Thread gameThread;
     KeyHandler keyH = new KeyHandler(this);
-    TileManager tileM = new TileManager(this);
+    public TileManager tileM = new TileManager(this);
     public CollisionChecker cChecker = new CollisionChecker(this);
     public AssetSetter aSetter = new AssetSetter(this);
     public Sound music = new Sound();
@@ -58,13 +58,15 @@ public class GamePanel extends JPanel implements Runnable {
     //players and objects
     public Player player = new Player(this, keyH);
     public Entity[] obj = new Entity[10];
-    public Entity[] monsters = new Entity[2];
+    public ArrayList<Entity> monsters = new ArrayList<>();
     ArrayList<Entity> entityList = new ArrayList<>();
     // game states
     public int gameState;
     public final int titleState = 0;
     public final int playState = 1;
     public final int pauseState = 2;
+    public final int loadingState = 3;
+    public final int optionState = 4;
 
     // CONSTRUCTOR
     public GamePanel() {
@@ -79,12 +81,11 @@ public class GamePanel extends JPanel implements Runnable {
     public void setUpGame() {
 
         aSetter.setObject();
-        aSetter.spawnMonsters();
-        gameState = titleState;
+        aSetter.spawnMonsters(tileM);
+        gameState = loadingState;
 
         tempScreen = new BufferedImage(screenWidth, screenHeight, BufferedImage.TYPE_INT_ARGB);
         g2 = (Graphics2D)tempScreen.getGraphics();
-
         setFullScreen();
     }
 
@@ -151,7 +152,7 @@ public class GamePanel extends JPanel implements Runnable {
     }
     public void drawToTempScreen() {
         // TITLE SCREEN
-        if (gameState == titleState) {
+        if (gameState == titleState || gameState == loadingState) {
             ui.draw(g2);
         }
         // OTHERS
