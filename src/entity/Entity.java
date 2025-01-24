@@ -17,7 +17,7 @@ public class Entity {
     public int speed;
 
     // SPRITES
-    public BufferedImage up1, up2, down1, down2, left1, left2, right1, right2;
+    public BufferedImage up1, up2, down1, down2, left1, left2, right1, right2, dead1, dead2;
     public String direction = "down";
 
     public int spriteCounter = 0;
@@ -33,7 +33,7 @@ public class Entity {
     // CHARACTER STATUS
     public boolean idle = true, fatigued;
     public float maxLife, life, maxStamina, stamina, damage;
-    public int attackCooldown = 0, hurtTime = 0;
+    public int attackCooldown = 0, hurtTime = 0, deadDuration = 120;
     public String name;
 
     public Entity(GamePanel gp) {

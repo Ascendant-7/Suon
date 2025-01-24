@@ -1,6 +1,9 @@
 package main;
 
 import monster.Silhouette;
+import object.ChestObject;
+import object.DoorObject;
+import object.KeyObject;
 // import object.ChestObject;
 // import object.DoorObject;
 // import object.KeyObject;
@@ -15,14 +18,20 @@ public class AssetSetter {
         this.gp = gp;
     }
 
-    public void setObject() {
-        // gp.obj[0] = new KeyObject(gp);
-        // gp.obj[0].worldX = 23 * gp.tileSize;
-        // gp.obj[0].worldY = 25 * gp.tileSize;
+    public void setObject(TileManager tileM) {
+        gp.obj[0] = new ChestObject(gp);
+        int col = tileM.algorithm.chestNExit.get(0).x;
+        int row = tileM.algorithm.chestNExit.get(0).y;
+        gp.obj[0].worldX = tileM.algorithm.chestNExit.get(0).x * gp.tileSize;
+        gp.obj[0].worldY = tileM.algorithm.chestNExit.get(0).y * gp.tileSize;
+        System.out.println("chest at: "+col+" "+row);
         
-        // gp.obj[1] = new DoorObject(gp);
-        // gp.obj[1].worldX = 27 * gp.tileSize;
-        // gp.obj[1].worldY = 22 * gp.tileSize;
+        gp.obj[1] = new KeyObject(gp);
+        col = tileM.algorithm.chestNExit.get(1).x;
+        row = tileM.algorithm.chestNExit.get(1).y;
+        gp.obj[1].worldX = col * gp.tileSize;
+        gp.obj[1].worldY = row * gp.tileSize;
+        System.out.println("key at: "+col+" "+row);
         
         // gp.obj[2] = new KeyObject(gp);
         // gp.obj[2].worldX = 13 * gp.tileSize;

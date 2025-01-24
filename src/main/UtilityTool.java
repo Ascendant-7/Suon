@@ -46,14 +46,22 @@ public class UtilityTool {
         return gp.screenHeight/2; 
     }
 
-    public void drawText(Graphics2D g2, String text, int X, int Y, int style, float size, Color color, boolean shadow, boolean centerX, boolean centerY, boolean drawSelection) {
+    public void drawText(Graphics2D g2, String text, int X, int Y, int style, float size, Color color, boolean shadow, int centerX, boolean centerY, boolean pointed, boolean selected) {
         g2.setFont(g2.getFont().deriveFont(style, size));
         int x = X;
         int y = Y;
-        if (centerX) 
+        if (centerX == 1) 
             x = getScreenCenterX(g2, text);
+        else if (centerX == 2) {
+            x += getScreenCenterX(g2, text);
+        }
         if (centerY) 
             y = getScreenCenterY(g2, text);
+
+        if (selected) {
+            g2.setColor(Color.darkGray);
+            g2.fillRoundRect(x-10, y-(int)size-5, (int)g2.getFontMetrics().getStringBounds(text, g2).getWidth()+20, (int)g2.getFontMetrics().getStringBounds(text, g2).getHeight()+20, 10, 10);
+        }
         // draw shadow if required
         if (shadow) {
             g2.setColor(Color.black);
@@ -62,7 +70,7 @@ public class UtilityTool {
         g2.setColor(color);
         g2.drawString(text, x, y);
 
-        if (drawSelection) {
+        if (pointed) {
             g2.drawString(">", x-gp.tileSize, y);
             g2.drawString("<", x+(int)g2.getFontMetrics().getStringBounds(text, g2).getWidth()+gp.tileSize-20, y);
         }

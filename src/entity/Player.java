@@ -62,40 +62,53 @@ public class Player extends Entity{
         left2 = gp.uTool.setup(suffix+"player_left2");
         right1 = gp.uTool.setup(suffix+"player_right1");
         right2 = gp.uTool.setup(suffix+"player_right2");
+        dead1 = gp.uTool.setup(suffix+"dead_1");
+        dead2 = gp.uTool.setup(suffix+"dead_2");
     }
 
     @Override
     public void update() {
+        if (life <= 0) {
+            life = 0;
+            if (deadDuration < 0) {
+                gp.ui.gameSubState = 2;
+                return;
+            }
+            deadDuration--;
+        }
         // CODE FOR PLAYER'S IDLE STATE
         if (idle) {
-            // CHECK FOR MOVEMENT INPUTS
-            if (keyH.upPressed) {
-                direction = "up";
-                idle = false;
-            }
-            else if (keyH.downPressed) {
-                direction = "down";
-                idle = false;
-            }
-            else if (keyH.leftPressed) {
-                direction = "left";
-                idle = false;
-            }
-            else if (keyH.rightPressed) {
-                direction = "right";
-                idle = false;
-            }
+            if (life > 0) {
 
-            // RESET COLLISION FLAGS
-            collisionOn = false;
-            tileCollided = false;
-            objCollided = false;
-            // CHECK TILE COLLISION
-            gp.cChecker.checkTile(this);
-    
-            // CHECK OBJECT COLLISION
-            int objIndex = gp.cChecker.checkObject(this);
-            pickUpObject(objIndex);
+                // CHECK FOR MOVEMENT INPUTS
+                if (keyH.upPressed) {
+                    direction = "up";
+                    idle = false;
+                }
+                else if (keyH.downPressed) {
+                    direction = "down";
+                    idle = false;
+                }
+                else if (keyH.leftPressed) {
+                    direction = "left";
+                    idle = false;
+                }
+                else if (keyH.rightPressed) {
+                    direction = "right";
+                    idle = false;
+                }
+
+                // RESET COLLISION FLAGS
+                collisionOn = false;
+                tileCollided = false;
+                objCollided = false;
+                // CHECK TILE COLLISION
+                gp.cChecker.checkTile(this);
+        
+                // CHECK OBJECT COLLISION
+                int objIndex = gp.cChecker.checkObject(this);
+                pickUpObject(objIndex);
+            }
 
             // MINOR ANIMATION FIXES
             if (idle) {
@@ -107,16 +120,19 @@ public class Player extends Entity{
             }
         }
         else {
-            // SUMMARIZE BOTH COLLISION CHECKS
-            collisionOn = tileCollided || objCollided;
+            if (life > 0) {
 
-            // IF COLLISION IS FALSE, PLAYER CAN MOVE
-            if (!collisionOn) {
-                switch (direction) {
-                    case "up": worldY -= speed; break;
-                    case "down": worldY += speed; break;
-                    case "left": worldX -= speed; break;
-                    case "right": worldX += speed; break;
+                // SUMMARIZE BOTH COLLISION CHECKS
+                collisionOn = tileCollided || objCollided;
+
+                // IF COLLISION IS FALSE, PLAYER CAN MOVE
+                if (!collisionOn) {
+                    switch (direction) {
+                        case "up": worldY -= speed; break;
+                        case "down": worldY += speed; break;
+                        case "left": worldX -= speed; break;
+                        case "right": worldX += speed; break;
+                    }
                 }
             }
             
@@ -140,43 +156,45 @@ public class Player extends Entity{
                 pixelCounter = 0;
             }
         }
-        if (fatigued) {
-            if (speed != 2 && pixelCounter == 0) {
-                speed = 2;
-            }
-            if (!keyH.shiftPressed) {
-                fatigueT2 = System.currentTimeMillis();
-                if (fatigueT2-fatigueT1 > 3000 && stamina > 30) {
-                    fatigued = false;
-                }
-                else {
-                    stamina += 0.2;
-                }
-            }
-        }
-        else {
-            if (keyH.shiftPressed && !idle) {
-                if (stamina <= 0) {
-                    fatigued = true;
-                    fatigueT1 = System.currentTimeMillis();
-                }
-                else {
-                    if (speed != 6  && pixelCounter == 0) {
-                        speed = 6;
-                    }
-                    stamina-=0.4;
-                }
-            }
-            else if (speed != 4  && pixelCounter == 0) {
-                speed = 4;
-            }
-            else if (stamina < 100) {
-                stamina+=0.2;
-            }
-        }
-
         
-        gp.cChecker.checkMonster(this, gp.monsters);
+
+        if (life > 0) {
+            if (fatigued) {
+                if (speed != 2 && pixelCounter == 0) {
+                    speed = 2;
+                }
+                if (!keyH.shiftPressed) {
+                    fatigueT2 = System.currentTimeMillis();
+                    if (fatigueT2-fatigueT1 > 3000 && stamina > 30) {
+                        fatigued = false;
+                    }
+                    else {
+                        stamina += 0.2;
+                    }
+                }
+            }
+            else {
+                if (keyH.shiftPressed && !idle) {
+                    if (stamina <= 0) {
+                        fatigued = true;
+                        fatigueT1 = System.currentTimeMillis();
+                    }
+                    else {
+                        if (speed != 6  && pixelCounter == 0) {
+                            speed = 6;
+                        }
+                        stamina-=0.4;
+                    }
+                }
+                else if (speed != 4  && pixelCounter == 0) {
+                    speed = 4;
+                }
+                else if (stamina < 100) {
+                    stamina+=0.2;
+                }
+            }
+            gp.cChecker.checkMonster(this, gp.monsters);
+        }
     }
 
     public void pickUpObject(int i) {
@@ -203,9 +221,15 @@ public class Player extends Entity{
                     }
                     break;
                 case "Chest":
-                    gp.ui.gameSubState = 1;
-                    gp.stopMusic(false);
-                    gp.playSFX(3);
+                    if (hasKey > 0) {
+                        gp.ui.gameSubState = 1;
+                        gp.stopMusic(false);
+                        gp.playSFX(3);
+                    }
+                    else {
+                        gp.ui.showMessage("You need a key!");
+                    }
+                    
                     break;
             }
         }
@@ -215,6 +239,14 @@ public class Player extends Entity{
     public void draw(Graphics2D g2) {
 
         BufferedImage image = null;
+        
+        if (life <= 0) {
+            if (deadDuration > 150)
+                g2.drawImage(dead1, screenX, screenY, null);
+            else
+                g2.drawImage(dead2, screenX, screenY, null);
+            return;
+        }
         
         switch (direction) {
             case "up":

@@ -7,7 +7,7 @@ public class KeyHandler implements KeyListener{
 
     GamePanel gp;
     // movement flags
-    public boolean upPressed, downPressed, leftPressed, rightPressed, shiftPressed;
+    public boolean upPressed, downPressed, leftPressed, rightPressed, shiftPressed, enterPressed;
     // game flags
     public boolean escapePressed;
     // debug flags
@@ -48,6 +48,7 @@ public class KeyHandler implements KeyListener{
                     switch (gp.ui.commandNum) {
                         case 0:
                             gp.ui.gameSubState = 1;
+                            gp.ui.commandNum = 0;
                             break;
                         case 1:
                             // add later
@@ -55,6 +56,9 @@ public class KeyHandler implements KeyListener{
                         case 2:
                             break;
                         case 3:
+                            gp.ui.gameSubState = 4;
+                            gp.ui.commandNum = 0;
+                            gp.ui.optionNum = -1;
                             break;
                         case 4:
                             System.exit(0);
@@ -105,6 +109,13 @@ public class KeyHandler implements KeyListener{
                 }
                 return;
             }
+            else if (gp.ui.gameSubState == 2) {
+                if (code == KeyEvent.VK_ENTER) {
+                    gp.gameState = gp.titleState;
+                    gp.ui.gameSubState = 0;
+                }
+                return;
+            }
             if (code == KeyEvent.VK_W || code == KeyEvent.VK_UP) {
                 upPressed = true;
             }
@@ -125,18 +136,89 @@ public class KeyHandler implements KeyListener{
         if (code == KeyEvent.VK_ESCAPE) {
             if (gp.gameState == gp.playState) {
                 gp.gameState = gp.pauseState;
+                gp.ui.commandNum = 0;
+                gp.ui.optionNum = -1;
                 gp.stopMusic(true);
-
             }
             else if (gp.gameState == gp.pauseState) {
                 gp.gameState = gp.playState;
+                gp.ui.commandNum = 0;
+                gp.ui.optionNum = -1;
                 gp.playMusic(0);
             }
         }
-        if (gp.gameState == gp.pauseState) {
+        // PAUSE / OPTIONS STATE
+        if (gp.gameState == gp.pauseState || (gp.gameState == gp.titleState && gp.ui.gameSubState == 4)) {
             if (code == KeyEvent.VK_M) {
                 gp.gameState = gp.titleState;
-                gp.stopMusic(false);
+                gp.ui.gameSubState = 0;
+            }
+            enterPressed = code == KeyEvent.VK_ENTER;
+
+            switch (gp.ui.optionNum) {
+                case -1:
+                    if (code == KeyEvent.VK_W || code == KeyEvent.VK_UP) {
+                        gp.ui.commandNum--;
+                        if (gp.ui.commandNum < 0) {
+                            gp.ui.commandNum = 3;
+                        }
+                    }
+                    else if (code == KeyEvent.VK_S || code == KeyEvent.VK_DOWN) {
+                        gp.ui.commandNum++;
+                        gp.ui.commandNum %= 4;
+                    }
+                    if (gp.ui.optionNum == -1 && gp.keyH.enterPressed) {
+                        gp.ui.optionNum = gp.ui.commandNum;
+                        if (gp.ui.optionNum == 3) {
+                            gp.gameState = gp.titleState;
+                            gp.ui.gameSubState = 0;
+                            gp.ui.commandNum = 0;
+                            return;
+                        }
+                            
+                    }
+                    break;
+                case 0:
+                    if (code == KeyEvent.VK_ENTER)
+                        gp.ui.fullscreen = !gp.ui.fullscreen;
+                    break;
+                case 1:
+                    switch (gp.ui.settingNum) {
+                        case 0:
+                            // MUSIC SETTING
+                            if (code == KeyEvent.VK_ENTER) {
+                                gp.music.volumeScale = (gp.music.volumeScale+1) % 6;
+                                if (gp.gameState == gp.pauseState)
+                                    gp.music.checkVolume();
+                                gp.playSFX(1);
+                            }
+                            break;
+                        case 1:
+                            // SFX SETTING
+                            if (code == KeyEvent.VK_ENTER) {
+                                gp.sfx.volumeScale = (gp.music.volumeScale+1) % 6;
+                                gp.playSFX(1);
+                            }
+                            break;
+                    }
+                    if (code == KeyEvent.VK_W || code == KeyEvent.VK_UP) {
+                        gp.ui.settingNum--;
+                        if (gp.ui.settingNum < 0) {
+                            gp.ui.settingNum = 1;
+                        }
+                    }
+                    else if (code == KeyEvent.VK_S || code == KeyEvent.VK_DOWN) {
+                        gp.ui.settingNum =(gp.ui.settingNum + 1) % 2;
+                    }
+
+                    break;
+                case 2:
+                    break;
+                default:
+                    break;
+            }
+            if ((code == KeyEvent.VK_A || code == KeyEvent.VK_LEFT) && gp.ui.optionNum != -1) {
+                gp.ui.optionNum = -1;
             }
         }
         

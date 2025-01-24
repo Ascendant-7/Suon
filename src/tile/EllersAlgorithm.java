@@ -21,12 +21,19 @@ public class EllersAlgorithm {
     ArrayList<Integer> list = new ArrayList<>();
     ArrayList<Vector2D> deadends = new ArrayList<>();
     public ArrayList<Vector2D> monsterLocations = new ArrayList<>();
+    public ArrayList<Vector2D> chestNExit = new ArrayList<>();
 
     static int set_id;     // FOR CELL ASIGNMENT
     static int current, last;  // FOR CELL PAIR JOINING
     public EllersAlgorithm(GamePanel gp) {
         rows = gp.mapWorldRow;
         cols = gp.mapWorldCol;
+        chestNExit.add(new Vector2D(1, 1));
+        chestNExit.add(new Vector2D(cols-2, 1));
+        chestNExit.add(new Vector2D(1, rows-4));
+        chestNExit.add(new Vector2D(cols-2, rows-4));
+
+        Collections.shuffle(chestNExit);
     }
     
     public int[][] loadNewMap() {
@@ -183,6 +190,7 @@ public class EllersAlgorithm {
         }
         System.out.println("monsters at: "+monsterLocations);
         deadends.clear();
+
     }
     public void transformV2() {
         // SPRITE TRANSFORM
