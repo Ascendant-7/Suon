@@ -245,7 +245,7 @@ public class UI {
             g2.fillRect(barX, barY, barW, barH);
             // health points
             g2.setColor(Color.red);
-            g2.fillRect(barX, barY, (int)(barW * (gp.player.life/100)), barH);
+            g2.fillRect(barX, barY, (int)(barW * (gp.player.getHealth()/100)), barH);
 
             // STAMINA BAR
             // stamina container
@@ -261,12 +261,12 @@ public class UI {
             g2.fillRect(barX, barY, barW, barH);
             // stamina points
             g2.setColor(Color.yellow);
-            g2.fillRect(barX, barY, (int)(barW * (gp.player.stamina/100)), barH);
+            g2.fillRect(barX, barY, (int)(barW * (gp.player.getStamina()/100)), barH);
             // KEYS
             g2.setColor(Color.white);
             g2.setFont(g2.getFont().deriveFont(42F));
             g2.drawImage(keyImage, gp.tileSize/2, gp.screenHeight - gp.tileSize, gp.tileSize, gp.tileSize, null);
-            g2.drawString("x "+gp.player.hasKey, gp.tileSize+20, gp.screenHeight-10);
+            g2.drawString("x "+gp.player.getKeys(), gp.tileSize+20, gp.screenHeight-10);
     
             if (messageOn) {
                 g2.setFont(g2.getFont().deriveFont(30F));
@@ -281,16 +281,31 @@ public class UI {
             // DEBUG
             if (gp.keyH.debugMode) {
                 g2.setFont(g2.getFont().deriveFont(30F));
-                g2.drawString("Speed: "+gp.player.speed, gp.screenWidth/2, gp.screenHeight-10);
-                g2.drawString("World("+gp.player.worldX/48+", "+gp.player.worldY/48+")", gp.screenWidth/2, gp.screenHeight-40);
-                g2.drawString("fatigued: "+gp.player.fatigued, gp.screenWidth/2, gp.screenHeight-70);
-                g2.drawString("idle: "+gp.player.idle, gp.screenWidth/2, gp.screenHeight-100);
+                int y = gp.screenHeight-100;
+                String[] measures = {
+                    // "Speed: "+gp.player.getSpeed(),
+                    "World("+gp.player.getWorldX()/48+", "+gp.player.getWorldY()/48+")",
+                    "Grid("+gp.player.getWorldX()+", "+gp.player.getWorldY()+")",
+                    // "fatigued: "+gp.player.getStaminaStatus(),
+                    // "idle: "+gp.player.getEntityState(),
+                    "direction: "+gp.player.getDirection(),
+                    "collided: "+gp.player.getColliderStatus(),
+                    // "pixel counter: "+gp.player.getPixelTracker(),
+                    // "tileCollided: "+gp.player.getTileCollided(),
+                    // "entityCollided: "+gp.player.getEntityCollided(),
+                    // "collider/WP("+gp.player.getCollider().x+", "+gp.player.getCollider().y+")"
+                    "E pressed: "+gp.keyH.interactPressed
+                };
+                for (String measure : measures) {
+                    g2.drawString(measure, 0, y);
+                    y -= 30;
+                }
             }
         }
         else if (gameSubState == 1) {
 
             int x = 0, y = gp.screenHeight/2 - (gp.tileSize*3);
-            gp.uTool.drawText(g2, "You found the final key!", x, y, Font.PLAIN, 40F, Color.white, false, 1, false, false, false);
+            gp.uTool.drawText(g2, "You escaped!", x, y, Font.PLAIN, 40F, Color.white, false, 1, false, false, false);
             
             y += gp.tileSize*5;
             gp.uTool.drawText(g2, "Congratulations!", x, y, Font.BOLD, 80F, Color.yellow, false, 1, false, false, false);

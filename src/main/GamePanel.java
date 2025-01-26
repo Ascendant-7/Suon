@@ -13,9 +13,6 @@ import java.awt.Graphics2D;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 
 public class GamePanel extends JPanel implements Runnable {
 
@@ -44,22 +41,22 @@ public class GamePanel extends JPanel implements Runnable {
     int FPS = 60;
 
     // GAME COMPONENTS
-    // tools
-    public UtilityTool uTool = new UtilityTool(this);
-    // thread and managers
     Thread gameThread;
-    KeyHandler keyH = new KeyHandler(this);
+    public UtilityTool uTool = new UtilityTool(this);
+    public KeyHandler keyH = new KeyHandler(this);
+    public Player player = new Player(this);
     public TileManager tileM = new TileManager(this);
     public CollisionChecker cChecker = new CollisionChecker(this);
     public AssetSetter aSetter = new AssetSetter(this);
     public Sound music = new Sound();
     public Sound sfx = new Sound();
     public UI ui = new UI(this);
-    //players and objects
-    public Player player = new Player(this, keyH);
-    public Entity[] obj = new Entity[10];
-    public ArrayList<Entity> monsters = new ArrayList<>();
-    ArrayList<Entity> entityList = new ArrayList<>();
+    
+    // GAME OBJECTS
+    // public Player player = new Player(this);
+    // public Entity[] obj = new Entity[10];
+    // public ArrayList<Entity> monsters = new ArrayList<>();
+    // ArrayList<Entity> entityList = new ArrayList<>();
     // game states
     public int gameState;
     public final int titleState = 0;
@@ -79,9 +76,6 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     public void setUpGame() {
-
-        aSetter.setObject(tileM);
-        aSetter.spawnMonsters(tileM);
         gameState = loadingState;
 
         tempScreen = new BufferedImage(screenWidth, screenHeight, BufferedImage.TYPE_INT_ARGB);
@@ -139,14 +133,8 @@ public class GamePanel extends JPanel implements Runnable {
     public void update() {
 
         if (gameState == playState && ui.gameSubState == 0) {
-            // PLAYER
-            player.update();
-
-            // MONSTERS
-            for (Entity e : monsters) {
-                if (e != null) {
-                    e.update();
-                }
+            for (Entity e : AssetSetter.entities) {
+                e.update();
             }
         }
     }
@@ -162,38 +150,10 @@ public class GamePanel extends JPanel implements Runnable {
             // TILE
             tileM.draw(g2);
 
-            // ADD ENTITY LIST
-            entityList.add(player);
-
-            for (Entity m : monsters) {
-                if (m != null) {
-                    entityList.add(m);
-                }
-            }
-
-            for (Entity o : obj) {
-                if (o != null) {
-                    entityList.add(o);
-                }
-            }
-
-            // SORT
-            Collections.sort(entityList, new Comparator<Entity>() {
-
-                @Override
-                public int compare(Entity e1, Entity e2) {
-
-                    int result = Integer.compare(e1.worldY, e2.worldY);
-                    return result;
-                }
-                
-            });
-
-            // DRAW ENTITIES
-            for (Entity e : entityList) {
+            AssetSetter.sortEntities();
+            for (Entity e : AssetSetter.entities) {
                 e.draw(g2);
             }
-            entityList.clear();
             // UI
             ui.draw(g2);
         }

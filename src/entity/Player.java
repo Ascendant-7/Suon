@@ -3,291 +3,276 @@ package entity;
 import java.awt.AlphaComposite;
 // import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
+import java.util.HashSet;
 
+import enums.Direction;
+import enums.EntityState;
+import enums.ID;
+import enums.Speed;
 import main.GamePanel;
 import main.KeyHandler;
+import object.ChestObject;
+import object.DoorObject;
+import object.KeyObject;
 
-public class Player extends Entity{
+public class Player extends LivingEntity {
 
-    KeyHandler keyH;
+    // BORROWED COMPONENTS
+    private KeyHandler keyH;
 
-    public final int screenX;
-    public final int screenY;
-    public int hasKey = 0;
-    int standCounter = 0;
-
-    long fatigueT1;
-    long fatigueT2;
-
+    // SCREEN POSITION (CONSTANT)
+    protected final int screenX;
+    protected final int screenY;
     
-    public Player(GamePanel gp, KeyHandler keyH) {
+    // STATUS FIELDS
+    private boolean fatigued; // FOR PLAYER ENTITY ONLY
+    private Speed staminaStatus = Speed.NORMAL;
+
+    // STATUS POINTS
+    private float maxStamina, stamina; // FOR PLAYER ENTITY ONLY
+
+    // INVENTORY
+    private HashSet<Integer> keys = new HashSet<>();
+
+    // INTERACTION
+
+    // CONSTANTS
+    private static final float FATIGUE_THRESHOLD = 30f;
+    private static final int FATIGUED_SPEED = 2;
+    private static final int NORMAL_SPEED = 4;
+    private static final int SPRINTING_SPEED = 6;
+    private static final float STAMINA_RECOVERY_RATE = 0.1f;
+    private static final float STAMINA_DEPLETION_RATE = 0.4f;
+
+    public Player(GamePanel gp) {
+
         super(gp);
-        this.keyH = keyH;
+        this.keyH = gp.keyH;
+        
+        id = ID.PLAYER;
 
         screenX = gp.screenWidth/2 - gp.tileSize/2;
         screenY = gp.screenHeight/2 - gp.tileSize/2;
 
-        solidArea.x = 1;
-        solidArea.y = 1;
-        solidAreaDefaultX = solidArea.x;
-        solidAreaDefaultY = solidArea.y;
-        solidArea.width = 46;
-        solidArea.height = 46;
-
         setDefaultValues();
-        getPlayerImage();
+
     }
 
     public void setDefaultValues() {
         
-        worldX = gp.tileSize * gp.mapWorldCol/2 - gp.tileSize/2;
-        worldY = gp.tileSize * gp.mapWorldRow/2 - gp.tileSize/2;
-        speed = 4;
-        direction = "down";
+        // DEFAULT LOCATION
+        worldX = (gp.mapWorldCol-1)*(gp.tileSize/2);
+        worldY = (gp.mapWorldRow-1)*(gp.tileSize/2);
 
-        // PLAYER STATUS
-        maxLife = 100;
-        life = maxLife;
+        // DEFAULT SPEED
+        speed = 4;
+
+        // DEFAULT STATUS POINTS
+        maxHealth = 100;
+        health = maxHealth;
         maxStamina = 100;
         stamina = maxStamina;
     }
-    public void getPlayerImage() {
-        String suffix = "/player/";
-        up1 = gp.uTool.setup(suffix+"player_up1");
-        up2 = gp.uTool.setup(suffix+"player_up2");
-        down1 = gp.uTool.setup(suffix+"player_down1");
-        down2 = gp.uTool.setup(suffix+"player_down2");
-        left1 = gp.uTool.setup(suffix+"player_left1");
-        left2 = gp.uTool.setup(suffix+"player_left2");
-        right1 = gp.uTool.setup(suffix+"player_right1");
-        right2 = gp.uTool.setup(suffix+"player_right2");
-        dead1 = gp.uTool.setup(suffix+"dead_1");
-        dead2 = gp.uTool.setup(suffix+"dead_2");
+
+    @Override
+    public void getImage() {
+        suffix = "/player/player_";
+        // SPRITES
+        imagePath[UP_1] = "up1";
+        imagePath[UP_2] = "up2";
+        imagePath[DOWN_1] = "down1";
+        imagePath[DOWN_2] = "down2";
+        imagePath[LEFT_1] = "left1";
+        imagePath[LEFT_2] = "left2";
+        imagePath[RIGHT_1] = "right1";
+        imagePath[RIGHT_2] = "right2";
+        imagePath[DEAD_1] = "dead1";
+        imagePath[DEAD_2] = "dead2";
+        super.getImage();
+    }
+    @Override
+    public void movingUpdate() {
+        
+        super.movingUpdate();
     }
 
     @Override
-    public void update() {
-        if (life <= 0) {
-            life = 0;
-            if (deadDuration < 0) {
-                gp.ui.gameSubState = 2;
-                return;
-            }
-            deadDuration--;
-        }
-        // CODE FOR PLAYER'S IDLE STATE
-        if (idle) {
-            if (life > 0) {
+    public void idleUpdate() {
 
-                // CHECK FOR MOVEMENT INPUTS
-                if (keyH.upPressed) {
-                    direction = "up";
-                    idle = false;
-                }
-                else if (keyH.downPressed) {
-                    direction = "down";
-                    idle = false;
-                }
-                else if (keyH.leftPressed) {
-                    direction = "left";
-                    idle = false;
-                }
-                else if (keyH.rightPressed) {
-                    direction = "right";
-                    idle = false;
-                }
+        checkPlayerInput();
+        super.idleUpdate();
+        checkStatus();
+        adjustSpeed();
+    }
 
-                // RESET COLLISION FLAGS
-                collisionOn = false;
-                tileCollided = false;
-                objCollided = false;
-                // CHECK TILE COLLISION
-                gp.cChecker.checkTile(this);
-        
-                // CHECK OBJECT COLLISION
-                int objIndex = gp.cChecker.checkObject(this);
-                pickUpObject(objIndex);
-            }
+    public void checkStatus() {
 
-            // MINOR ANIMATION FIXES
-            if (idle) {
-                standCounter++;
-                if (standCounter == 20) {
-                    spriteNum = 2;
-                    standCounter = 0;
-                }
-            }
+        handleFatigue();
+        handleSprinting();
+    }
+
+    public void handleFatigue() {
+
+        if (!fatigued) return;
+
+        // DECREASED SPEED ON FATIGUED IF HAVEN'T
+        staminaStatus = Speed.FATIGUED;
+        // RECOVER STAMINA IF 'SHIFT' ISN'T PRESSED
+        if (!keyH.shiftPressed) stamina += STAMINA_RECOVERY_RATE;
+        // IF STAMINA IS OVER 30, PLAYER IS NO LONGER FATIGUED
+        if (stamina > FATIGUE_THRESHOLD) fatigued = false;
+    }
+
+    public void handleSprinting() {
+
+        if (fatigued) return;
+
+        // PRESSING 'SHIFT' AND MOVEMENT KEYS
+        if (keyH.shiftPressed && state == EntityState.MOVING) {
+
+            // SWITCH TO SPRINTING
+            staminaStatus = Speed.SPRINT;
+            // DECREASE STAMINA
+            stamina -= STAMINA_DEPLETION_RATE;
         }
         else {
-            if (life > 0) {
 
-                // SUMMARIZE BOTH COLLISION CHECKS
-                collisionOn = tileCollided || objCollided;
-
-                // IF COLLISION IS FALSE, PLAYER CAN MOVE
-                if (!collisionOn) {
-                    switch (direction) {
-                        case "up": worldY -= speed; break;
-                        case "down": worldY += speed; break;
-                        case "left": worldX -= speed; break;
-                        case "right": worldX += speed; break;
-                    }
-                }
-            }
-            
-            // ANIMATION
-            spriteCounter++;
-            
-            if (spriteCounter > 12) { // limit the change to ten frames per second, instead of 60
-                if (spriteNum == 1) {
-                    spriteNum = 2;
-                } else if (spriteNum == 2) {
-                    spriteNum = 1;
-                }
-                spriteCounter = 0;
-            }
-
-            // PLAYER TILE-BASED MOVEMENT CHANGES
-            pixelCounter += speed;
-
-            if (pixelCounter == 48) {
-                idle = true;
-                pixelCounter = 0;
-            }
+            // NORMALIZE SPEED IF NOT SPRINTING
+            staminaStatus = Speed.NORMAL;
+            // RECOVER STAMINA IF NOT FULL
+            if (stamina < maxStamina) stamina += STAMINA_RECOVERY_RATE;
         }
-        
+        // BECOME FATIGUED IF STAMINA DROPPED TO 0
+        if (stamina <= 0) fatigued = true;
+    }
 
-        if (life > 0) {
-            if (fatigued) {
-                if (speed != 2 && pixelCounter == 0) {
-                    speed = 2;
-                }
-                if (!keyH.shiftPressed) {
-                    fatigueT2 = System.currentTimeMillis();
-                    if (fatigueT2-fatigueT1 > 3000 && stamina > 30) {
-                        fatigued = false;
-                    }
-                    else {
-                        stamina += 0.2;
-                    }
-                }
-            }
-            else {
-                if (keyH.shiftPressed && !idle) {
-                    if (stamina <= 0) {
-                        fatigued = true;
-                        fatigueT1 = System.currentTimeMillis();
-                    }
-                    else {
-                        if (speed != 6  && pixelCounter == 0) {
-                            speed = 6;
-                        }
-                        stamina-=0.4;
-                    }
-                }
-                else if (speed != 4  && pixelCounter == 0) {
-                    speed = 4;
-                }
-                else if (stamina < 100) {
-                    stamina+=0.2;
-                }
-            }
-            gp.cChecker.checkMonster(this, gp.monsters);
+    public void adjustSpeed() {
+        switch (staminaStatus) {
+            case FATIGUED:
+                if (speed != FATIGUED_SPEED) speed = FATIGUED_SPEED;
+                break;
+            case NORMAL:
+                if (speed != NORMAL_SPEED) speed = NORMAL_SPEED;
+                break;
+            case SPRINT:
+                if (speed != SPRINTING_SPEED) speed = SPRINTING_SPEED;
+                break;
+            default:
+                break;
+            
         }
     }
 
-    public void pickUpObject(int i) {
-        if (i != 999) {
-            
-            String objName = gp.obj[i].name;
+    public void interactWith(Entity e) { 
+        switch (e.id) {
+            case KEY: interactWithKey((KeyObject) e); break;
+            case DOOR: interactWithDoor((DoorObject) e); break;
+            case CHEST:interactWithChest((ChestObject) e); break;
+            case MONSTER: interactWithMonsters((LivingEntity) e); break;
+            default:
+                break;
+        }
+    }
 
-            switch (objName) {
-                case "Key":
-                    gp.playSFX(1);
-                    hasKey++;
-                    gp.obj[i] = null;
-                    gp.ui.showMessage("You got a key!");
-                    break;
-                case "Door":
-                    if (hasKey > 0) {
-                        gp.playSFX(2);
-                        gp.obj[i] = null;
-                        hasKey--;
-                        gp.ui.showMessage("You open a door!");
-                    }
-                    else {
-                        gp.ui.showMessage("You need a key!");
-                    }
-                    break;
-                case "Chest":
-                    if (hasKey > 0) {
-                        gp.ui.gameSubState = 1;
-                        gp.stopMusic(false);
-                        gp.playSFX(3);
-                    }
-                    else {
-                        gp.ui.showMessage("You need a key!");
-                    }
-                    
-                    break;
+    public void interactWithKey(KeyObject key) {
+
+        if (!key.isEnabled()) return;
+        gp.ui.showMessage("(E) PICK UP KEY");
+        if (!keyH.interactPressed) return;
+        int id = ((KeyObject)key).getKeyId();
+        keys.add(id);
+        gp.ui.showMessage("You got a key! ID: "+id);
+        key.disable();
+    }
+
+    public void interactWithDoor(DoorObject door) {
+        gp.ui.showMessage("(E) OPEN");
+        if (!keyH.interactPressed) return;
+        for (Integer ID : keys) {
+            if (ID == door.getDoorId()) {
+                door.collided = false;
+                door.spriteIndex = 1;
+                gp.ui.gameSubState = 1;
+                gp.stopMusic(false);
+                gp.playSFX(3);
+                return;
             }
+        }
+        gp.ui.showMessage("You need a key!");
+    }
+
+    public void interactWithChest(ChestObject chest) {
+        if (!chest.isEnabled()) return;
+        gp.ui.showMessage("(E) UNLOCK CHEST");
+        if (!keyH.interactPressed) return;
+        for (Integer ID : keys) {
+            if (ID == 0) {
+                keys.remove(0);
+                keys.add(-1);
+                gp.ui.showMessage("You got the final key! Find the exit!");
+                chest.disable();
+                return;
+            }
+        }
+        gp.ui.showMessage("You need a key!");
+    }
+
+    public void interactWithMonsters(LivingEntity monster) {
+        monster.setState(EntityState.ATTACK);
+        if (hurtCooldown <= 0) {
+            health -= monster.damage;
+            hurtCooldown = 60;
+        }
+    }
+
+    public void checkPlayerInput() {
+        if (keyH.upPressed || keyH.downPressed || keyH.leftPressed || keyH.rightPressed) {
+            if (keyH.upPressed) {
+                direction = Direction.UP;
+                spriteIndex = 0 + spriteSwitch;
+            }
+            else if (keyH.downPressed) {
+                direction = Direction.DOWN;
+                spriteIndex = 2 + spriteSwitch;
+            }
+            else if (keyH.leftPressed) {
+                direction = Direction.LEFT;
+                spriteIndex = 4 + spriteSwitch;
+            }
+            else if (keyH.rightPressed) {
+                direction = Direction.RIGHT ;
+                spriteIndex = 6 + spriteSwitch;
+            }
+            checkCollision();
+            if (!collided)
+                state = EntityState.MOVING;
+        }
+        else {
+            state = EntityState.IDLE;
         }
     }
 
     @Override
     public void draw(Graphics2D g2) {
-
-        BufferedImage image = null;
         
-        if (life <= 0) {
-            if (deadDuration > 150)
-                g2.drawImage(dead1, screenX, screenY, null);
-            else
-                g2.drawImage(dead2, screenX, screenY, null);
-            return;
-        }
-        
-        switch (direction) {
-            case "up":
-                if (spriteNum == 1)
-                    image = up1;
-                if (spriteNum == 2)
-                    image = up2;
-                break;
-            case "down":
-                if (spriteNum == 1)
-                    image = down1;
-                if (spriteNum == 2)
-                    image = down2;
-                break;
-            case "left":
-                if (spriteNum == 1)
-                    image = left1;
-                if (spriteNum == 2)
-                    image = left2;
-                break;
-            case "right":
-                if (spriteNum == 1)
-                    image = right1;
-                if (spriteNum == 2)
-                    image = right2;
-                break;
-        }
-
-        if (hurtTime > 0) {
-            // TRANSPARENT
+        // INCREASE TRANSPARENCY FOR PLAYER'S IMAGE
+        if (hurtCooldown > 0) 
             g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
-            hurtTime--;
-        }
-        g2.drawImage(image, screenX, screenY, null);
 
-        // RESET TRANSPARENCY
-        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
-    
+        // DRAW PLAYER
+        g2.drawImage(sprites.get(spriteIndex), screenX, screenY, null);
+
+        // DECREASE TRANSPARENCY AFTER DRAWN
+        if (hurtCooldown > 0) 
+            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
 
         // FOR DEBUGGING COLLIDER AREA (ENABLE COLLIDER VISUAL)
         // g2.setColor(Color.red);
-        // g2.drawRect(screenX + solidArea.x, screenY + solidArea.y, solidArea.width, solidArea.height);
+        // g2.drawRect(screenX + 1, screenY + 1, 46, 46);
     }
+
+    public float getStamina() { return stamina; }
+    public int getKeys() { return keys.size(); }
+    public Speed getStaminaStatus() {  return staminaStatus; }
+    public EntityState getEntityState() { return state; }
 }

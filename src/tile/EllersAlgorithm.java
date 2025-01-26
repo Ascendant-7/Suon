@@ -22,29 +22,25 @@ public class EllersAlgorithm {
     ArrayList<Vector2D> deadends = new ArrayList<>();
     public ArrayList<Vector2D> monsterLocations = new ArrayList<>();
     public ArrayList<Vector2D> chestNExit = new ArrayList<>();
+    Vector2D door;
 
     static int set_id;     // FOR CELL ASIGNMENT
     static int current, last;  // FOR CELL PAIR JOINING
     public EllersAlgorithm(GamePanel gp) {
         rows = gp.mapWorldRow;
         cols = gp.mapWorldCol;
-        chestNExit.add(new Vector2D(1, 1));
-        chestNExit.add(new Vector2D(cols-2, 1));
-        chestNExit.add(new Vector2D(1, rows-4));
-        chestNExit.add(new Vector2D(cols-2, rows-4));
-
-        Collections.shuffle(chestNExit);
+        grid = new int[cols][rows];
     }
     
     public int[][] loadNewMap() {
         
-        grid = new int[cols][rows];
         initialize();
         generate();
         transform();
-        spawnMonsters();
+        spawnEntities();
         transformV2();
-        // display();
+        setExit();
+        display();
         
         return grid;
     }
@@ -158,7 +154,7 @@ public class EllersAlgorithm {
             }
         }
     }
-    public void spawnMonsters() {
+    public void spawnEntities() {
         // MONSTER SPAWN
         monsterLocations.clear();
         deadends = new ArrayList<>();
@@ -183,12 +179,37 @@ public class EllersAlgorithm {
         }
         System.out.println("deadends: "+deadends.size());
         Collections.shuffle(deadends);
+
+        deadends.removeIf(v -> Math.abs(25 - v.x) < 10 && Math.abs(25 - v.y) < 10);
         for (int i = 0; i < 10; i++) {
             if (deadends.size() <= i)
                 break;
             monsterLocations.add(deadends.get(i));
+            deadends.remove(i);
         }
+        for (int i = 0; i < 4; i++) {
+            if (deadends.size() <= i)
+                break;
+            chestNExit.add(deadends.get(i));
+            deadends.remove(i);
+        }
+
+        deadends.removeIf(v -> Math.abs(25 - v.x) < 20 && Math.abs(25 - v.y) < 20);
+        chestNExit.add(deadends.get(0));
+        deadends.remove(0);
+        
+        deadends.removeIf(v -> (v.y == 1 || v.y == 49) && Math.abs(chestNExit.getLast().x - v.x) < 20 && Math.abs(chestNExit.getLast().y - v.y) < 20);
+        door = deadends.get(0);
+        if (door.y == 1) door.y = 0;
+        else door.y = 50;
+        System.out.println("exit is at "+door.x+", "+door.y);
+        grid[door.x][door.y] = 0;
+        chestNExit.add(door);
+
+        display();
+        
         System.out.println("monsters at: "+monsterLocations);
+        System.out.println("keys, chest and door at: "+chestNExit);
         deadends.clear();
 
     }
@@ -197,9 +218,12 @@ public class EllersAlgorithm {
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
                 if (row == rows-1 || (grid[col][row] == 1 && grid[col][row+1] == 0))
-                grid[col][row] = 2;
+                    grid[col][row] = 2;
             }
         }
+    }
+    public void setExit() {
+        grid[door.x][door.y] = 0;
     }
     public void display() {
         for (int row = 0; row < rows; row++) {

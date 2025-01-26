@@ -86,19 +86,22 @@ public class TileManager {
         int worldCol = 0;
         int worldRow = 0;
 
+        int playerScreenX = gp.screenWidth/2 - gp.tileSize/2;
+        int playerScreenY = gp.screenHeight/2 - gp.tileSize/2;
+
         while (worldCol < gp.mapWorldCol && worldRow < gp.mapWorldRow) {
 
             int tileNum = mapTileNum[worldCol][worldRow];
 
             int worldX = worldCol * gp.tileSize;
             int worldY = worldRow * gp.tileSize;
-            int screenX = worldX - gp.player.worldX + gp.player.screenX;
-            int screenY = worldY - gp.player.worldY + gp.player.screenY;
+            int screenX = worldX - gp.player.getWorldX() + playerScreenX;
+            int screenY = worldY - gp.player.getWorldY() + playerScreenY;
 
             if (screenX + gp.tileSize > 0 && 
-                screenX - gp.tileSize < gp.player.screenX*2 && 
+                screenX - gp.tileSize < playerScreenX*2 && 
                 screenY + gp.tileSize > 0 && 
-                screenY - gp.tileSize < gp.player.screenY*2)
+                screenY - gp.tileSize < playerScreenY*2)
             // if (worldX + gp.tileSize > gp.player.worldX - gp.player.screenX &&
             //     worldX - gp.tileSize < gp.player.worldX + gp.player.screenX &&
             //     worldY + gp.tileSize > gp.player.worldY - gp.player.screenY &&

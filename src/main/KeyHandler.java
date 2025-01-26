@@ -7,7 +7,7 @@ public class KeyHandler implements KeyListener{
 
     GamePanel gp;
     // movement flags
-    public boolean upPressed, downPressed, leftPressed, rightPressed, shiftPressed, enterPressed;
+    public boolean upPressed, downPressed, leftPressed, rightPressed, shiftPressed, enterPressed, interactPressed;
     // game flags
     public boolean escapePressed;
     // debug flags
@@ -130,6 +130,9 @@ public class KeyHandler implements KeyListener{
             }
             if (code == KeyEvent.VK_SHIFT) {
                 shiftPressed = true;
+            }
+            if (code == KeyEvent.VK_E) {
+                interactPressed = true;
             }
 
         }
@@ -254,6 +257,9 @@ public class KeyHandler implements KeyListener{
             }
             if (code == KeyEvent.VK_SHIFT) {
                 shiftPressed = false;
+            }
+            if (code == KeyEvent.VK_E) {
+                interactPressed = false;
             }
         }
         

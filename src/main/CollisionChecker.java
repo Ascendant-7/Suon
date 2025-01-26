@@ -1,195 +1,141 @@
 package main;
 
+
+import java.awt.Rectangle;
 import java.util.ArrayList;
 
 import entity.Entity;
+import entity.LivingEntity;
 import entity.Player;
+import enums.ID;
 
 public class CollisionChecker {
 
+    // BOUNDARIES
+    int[] entityBounds = new int[4];
+    int[] targetBounds = new int[4];
+    int entityTopRow, entityBottomRow, entityLeftCol, entityRightCol;
+    int tileNum1, tileNum2;
+    int speed;
+
+    // CONSTANTS
+    final int topBound = 0, botBound = 1, leftBound = 2, rightBound = 3;
+
     GamePanel gp;
+    ArrayList<Entity> entities;
+    Rectangle collider;
     public CollisionChecker(GamePanel gp) {
+
         this.gp = gp;
+        entities = AssetSetter.entities;
     }
 
-    public void checkTile(Entity entity) {
+    public void getEntityCollider(Entity entity, boolean target) {
+        if (target) {
+            targetBounds[topBound] = entity.getColliderTopBound();
+            targetBounds[botBound] = entity.getColliderBottomBound();
+            targetBounds[leftBound] = entity.getColliderLeftBound();
+            targetBounds[rightBound] = entity.getColliderRightBound();
+        }
+        else {
+            entityBounds[topBound] = entity.getColliderTopBound();
+            entityBounds[botBound] = entity.getColliderBottomBound();
+            entityBounds[leftBound] = entity.getColliderLeftBound();
+            entityBounds[rightBound] = entity.getColliderRightBound();
+        }
         
-        int entityLeftWorldX = entity.worldX + entity.solidArea.x;
-        int entityRightWorldX = entity.worldX + entity.solidArea.x + entity.solidArea.width;
-        int entityTopWorldY = entity.worldY + entity.solidArea.y;
-        int entityBottomWorldY = entity.worldY + entity.solidArea.y + entity.solidArea.height;
+    }
 
-        int entityLeftCol = entityLeftWorldX/gp.tileSize;
-        int entityRightCol = entityRightWorldX/gp.tileSize;
-        int entityTopRow = entityTopWorldY/gp.tileSize;
-        int entityBottomRow = entityBottomWorldY/gp.tileSize;
+    public boolean checkTile(LivingEntity entity) {
 
-        int tileNum1 = 0, tileNum2 = 0;
+        speed = entity.getSpeed();
 
-        switch (entity.direction) {
-            case "up":
-                entityTopRow = (entityTopWorldY - entity.speed)/gp.tileSize;
+        // ENTITY COLLIDER BOUND
+        getEntityCollider(entity, false);  // MODIFY BOUND ARRAY
+
+        // ENTITY COLLIDER BOUND ON GRID
+        entityLeftCol = entityBounds[leftBound] / gp.tileSize;
+        entityRightCol = entityBounds[rightBound] / gp.tileSize;
+        entityTopRow = entityBounds[topBound] / gp.tileSize;
+        entityBottomRow = entityBounds[botBound] / gp.tileSize;
+
+        switch (entity.getDirection()) {
+            case UP:
+                entityTopRow = (entityBounds[topBound] - speed)/gp.tileSize;
                 tileNum1 = gp.tileM.mapTileNum[entityLeftCol][entityTopRow];
                 tileNum2 = gp.tileM.mapTileNum[entityRightCol][entityTopRow];
                 break;
-            case "down":
-                entityBottomRow = (entityBottomWorldY + entity.speed)/gp.tileSize;
+            case DOWN:
+                entityBottomRow = (entityBounds[botBound] + speed)/gp.tileSize;
                 tileNum1 = gp.tileM.mapTileNum[entityLeftCol][entityBottomRow];
                 tileNum2 = gp.tileM.mapTileNum[entityRightCol][entityBottomRow];
                 break;
-            case "left":
-                entityLeftCol= (entityLeftWorldX - entity.speed)/gp.tileSize;
+            case LEFT:
+                entityLeftCol= (entityBounds[leftBound] - speed)/gp.tileSize;
                 tileNum1 = gp.tileM.mapTileNum[entityLeftCol][entityTopRow];
                 tileNum2 = gp.tileM.mapTileNum[entityLeftCol][entityBottomRow];
                 break;
-            case "right":
-                entityRightCol = (entityRightWorldX + entity.speed)/gp.tileSize;
+            case RIGHT:
+                entityRightCol = (entityBounds[rightBound] + speed)/gp.tileSize;
                 tileNum1 = gp.tileM.mapTileNum[entityRightCol][entityTopRow];
                 tileNum2 = gp.tileM.mapTileNum[entityRightCol][entityBottomRow];
                 break;
         }
         
-        entity.tileCollided = gp.tileM.tile[tileNum1].collision || gp.tileM.tile[tileNum2].collision;
+        return gp.tileM.tile[tileNum1].collision || gp.tileM.tile[tileNum2].collision;
     }
 
-    public int checkObject(Player player) {
+    public boolean checkEntity(LivingEntity entity) {
 
-        int index = 999;
+        collider = entity.getCollider();
+        switch (entity.getDirection()) {
+            case UP:
+                collider.y -= entity.getSpeed();
+                break;
+            case DOWN:
+                collider.y += entity.getSpeed();
+                break;
+            case LEFT:
+                collider.x -= entity.getSpeed();
+                break;
+            case RIGHT:
+                collider.x += entity.getSpeed();
+                break;
+        }
+        for (Entity e : entities) {
 
-        for (int i = 0; i < gp.obj.length; i++) {
-            
-            if (gp.obj[i] != null) {
+            if (e == null || e.getID() == entity.getID()) continue;
 
-                // get entity's solid area position
-                player.solidArea.x += player.worldX;
-                player.solidArea.y += player.worldY;
-
-                // get the object's solid area position
-                gp.obj[i].solidArea.x += gp.obj[i].worldX;
-                gp.obj[i].solidArea.y += gp.obj[i].worldY;
-
-                switch (player.direction) {
-                    case "up":
-                        player.solidArea.y -= player.speed;
-                        break;
-                    case "down":
-                        player.solidArea.y += player.speed;
-                        break;
-                    case "left":
-                        player.solidArea.x -= player.speed;
-                        break;
-                    case "right":
-                        player.solidArea.x += player.speed;
-                        break;
+            if (collider.intersects(e.getCollider())) {
+                if (entity.getID() == ID.PLAYER) {
+                    ((Player)entity).interactWith(e);
                 }
-                if (player.solidArea.intersects(gp.obj[i].solidArea)) {
-                    player.objCollided = gp.obj[i].collisionOn;
-                    index = i;
-                }
-
-                // RESET
-                player.solidArea.x = player.solidAreaDefaultX;
-                player.solidArea.y = player.solidAreaDefaultY;
-                gp.obj[i].solidArea.x = gp.obj[i].solidAreaDefaultX;
-                gp.obj[i].solidArea.y = gp.obj[i].solidAreaDefaultY;
+                return e.getColliderStatus();
             }
         }
-
-        return index;
-    }
-
-    public void checkObject(Entity entity) {
-
-        for (int i = 0; i < gp.obj.length; i++) {
-            
-            if (gp.obj[i] != null) {
-
-                // get entity's solid area position
-                entity.solidArea.x += entity.worldX;
-                entity.solidArea.y += entity.worldY;
-
-                // get the object's solid area position
-                gp.obj[i].solidArea.x += gp.obj[i].worldX;
-                gp.obj[i].solidArea.y += gp.obj[i].worldY;
-
-                switch (entity.direction) {
-                    case "up":
-                        entity.solidArea.y -= entity.speed;
-                        break;
-                    case "down":
-                        entity.solidArea.y += entity.speed;
-                        break;
-                    case "left":
-                        entity.solidArea.x -= entity.speed;
-                        break;
-                    case "right":
-                        entity.solidArea.x += entity.speed;
-                        break;
-                }
-                if (entity.solidArea.intersects(gp.obj[i].solidArea)) {
-                    entity.objCollided = gp.obj[i].collisionOn;
-                }
-
-                // RESET
-                entity.solidArea.x = entity.solidAreaDefaultX;
-                entity.solidArea.y = entity.solidAreaDefaultY;
-                gp.obj[i].solidArea.x = gp.obj[i].solidAreaDefaultX;
-                gp.obj[i].solidArea.y = gp.obj[i].solidAreaDefaultY;
-            }
-        }
-    }
-    public boolean checkOverallCollision(Entity e) {
-        e.tileCollided = false;
-        e.objCollided = false;
-
-        checkTile(e);
-        checkObject(e);
-        return e.tileCollided || e.objCollided;
+        return false;
 
     }
+    // public boolean checkEntity(Player player) {
 
-    public void checkMonster(Player entity, ArrayList<Entity> target) {
+    //     for (Entity e : entities) {
 
-        for (Entity e : target) {
-            
-            if (e != null) {
+    //         if (e == null) continue;
 
-                // get entity's solid area position
-                entity.solidArea.x += entity.worldX;
-                entity.solidArea.y += entity.worldY;
+    //         if (player.getCollider().intersects(e.getCollider())) {
+    //             System.out.println("interacted as a player");
+    //             player.interactWith(player);
+    //             return e.getColliderStatus();
+    //         }
+    //     }
+    //     return false;
+    // }
 
-                // get the target's solid area position
-                e.solidArea.x += e.worldX;
-                e.solidArea.y += e.worldY;
-
-                switch (entity.direction) {
-                    case "up":
-                        entity.solidArea.y -= entity.speed;
-                        break;
-                    case "down":
-                        entity.solidArea.y += entity.speed;
-                        break;
-                    case "left":
-                        entity.solidArea.x -= entity.speed;
-                        break;
-                    case "right":
-                        entity.solidArea.x += entity.speed;
-                        break;
-                }
-                if (entity.solidArea.intersects(e.solidArea)) {
-                    if (e.attackCooldown <= 0 && entity.hurtTime <= 0) {
-                        entity.life -= e.damage;
-                        e.attackCooldown = 120;
-                        entity.hurtTime = 100;
-                    }
-                }
-
-                // RESET
-                entity.solidArea.x = entity.solidAreaDefaultX;
-                entity.solidArea.y = entity.solidAreaDefaultY;
-                e.solidArea.x = e.solidAreaDefaultX;
-                e.solidArea.y = e.solidAreaDefaultY;
-            }
-        }
+    public boolean intersects() {
+        boolean topIntersected = entityBounds[topBound] >= targetBounds[topBound] && entityBounds[topBound] <= targetBounds[botBound];
+        boolean botIntersected = entityBounds[botBound] >= targetBounds[topBound] && entityBounds[botBound] <= targetBounds[botBound];
+        boolean leftIntersected = entityBounds[leftBound] >= targetBounds[leftBound] && entityBounds[leftBound] <= targetBounds[rightBound];
+        boolean rightIntersected = entityBounds[rightBound] >= targetBounds[leftBound] && entityBounds[rightBound] <= targetBounds[rightBound];
+        return topIntersected || botIntersected || leftIntersected || rightIntersected;
     }
 }
