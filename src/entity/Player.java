@@ -72,6 +72,9 @@ public class Player extends LivingEntity {
         maxStamina = 100;
         stamina = maxStamina;
         keys.clear();
+
+        state = EntityState.IDLE;
+        spriteIndex = 2;
     }
 
     @Override
@@ -190,7 +193,7 @@ public class Player extends LivingEntity {
                 door.spriteIndex = 1;
                 gp.ui.gameSubState = 1;
                 state = EntityState.WON;
-                gp.stopMusic(false);
+                gp.stopMusic();
                 gp.playSFX(3);
                 return;
             }

@@ -214,11 +214,19 @@ public class UI {
             y += gp.tileSize*2;
             gp.uTool.drawText(g2, "Back", x, y, Font.BOLD, 42F, Color.white, false, 1, false, commandNum == 2, false);
         }
-        else if (gameSubState == 3) {
+        else if (gameSubState == 2) {
             g2.setColor(Color.black);
             g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
 
             gp.uTool.drawText(g2, "Rules & Tutorial", 0, 100, Font.BOLD, 80, Color.white, false, 1, false, false, false);
+            gp.uTool.drawText(g2, "You play as a lost adventurer escaping from the maze.", 50, 150, Font.BOLD, 30, Color.white, false, 0, false, false, false);
+            gp.uTool.drawText(g2, "Move around using (WASD). (Shift) to run but watch your stamina.", 50, 200, Font.BOLD, 30, Color.white, false, 0, false, false, false);
+            gp.uTool.drawText(g2, "Interact with keys, chests and doors by walking into them.", 50, 250, Font.BOLD, 30, Color.white, false, 0, false, false, false);
+            gp.uTool.drawText(g2, "Your goal is to find your way out of this maze,", 50, 300, Font.BOLD, 30, Color.white, false, 0, false, false, false);
+            gp.uTool.drawText(g2, "by collecting the right keys and opening the chest,", 50, 350, Font.BOLD, 30, Color.white, false, 0, false, false, false);
+            gp.uTool.drawText(g2, "which contains the last key to the exit.", 50, 400, Font.BOLD, 30, Color.white, false, 0, false, false, false);
+            gp.uTool.drawText(g2, "avoid all silhouettes, they are deadly.", 50, 450, Font.BOLD, 30, Color.white, false, 0, false, false, false);
+            gp.uTool.drawText(g2, "(ESC) to go back", 50, 550, Font.BOLD, 30, Color.white, false, 1, false, false, false);
 
         }
         else if (gameSubState == 4) {
@@ -329,11 +337,7 @@ public class UI {
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         // BACKGROUND
         g2.setColor(Color.black);
-        if (gp.gameState == gp.pauseState)
-            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
         g2.fillRect(x, y, w, h);
-        if (gp.gameState == gp.pauseState)
-            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
 
         // OPTION WINDOW
         g2.setColor(Color.white);

@@ -50,15 +50,14 @@ public class LivingEntity extends Entity {
         switch (state) {
             case DEAD:
                 if (deadDuration > 0) {
-                    if (deadDuration == 0) {
-                        gp.ui.gameSubState = 2;
-                    }
+                    if (deadDuration == 0) gp.ui.gameSubState = 2;
                     spriteIndex = deadDuration > 100 ? DEAD_1 : DEAD_2;
                     deadDuration--;
                 }
                 else {
                     gp.ui.gameSubState = 2;
-                    gp.stopMusic(false);
+                    gp.stopMusic();
+                    gp.playSFX(4);
                 }
                 return;
             case IDLE:

@@ -16,6 +16,7 @@ import object.KeyObject;
 public class Config {
 
     GamePanel gp;
+    boolean saved;
 
     public Config(GamePanel gp) {
 
@@ -58,7 +59,7 @@ public class Config {
                 bw.write(Integer.toString(key)+" ");
             }
             bw.newLine();
-            bw.write("player-position: "+gp.player.getWorldX()+" "+gp.player.getWorldY());
+            bw.write("player-position: "+gp.player.getWorldX()/gp.tileSize+" "+gp.player.getWorldY()/gp.tileSize);
             bw.newLine();
             System.out.println("player-position: ("+gp.player.getWorldX()/gp.tileSize+" "+gp.player.getWorldY()/gp.tileSize+")");
             
@@ -77,8 +78,8 @@ public class Config {
             for (Entity entity : AssetSetter.entities) {
                 ID id = entity.getID();
                 if (id == ID.PLAYER) continue;
-                int x = entity.getWorldX();
-                int y = entity.getWorldY();
+                int x = entity.getWorldX()/gp.tileSize;
+                int y = entity.getWorldY()/gp.tileSize;
 
                 switch (id) {
                     case CHEST:
@@ -113,11 +114,12 @@ public class Config {
         
     }
 
-    public void loadGame() {
+    public void loadSavedGame() {
         try {
             BufferedReader br = new BufferedReader(new FileReader("game.txt"));
             String line = br.readLine();
-            if (line == null || !line.equals("yes")) {
+            saved = line == null || !line.equals("yes");
+            if (!saved) {
                 br.close();
                 return;
             }
@@ -134,7 +136,7 @@ public class Config {
                         }
                         break;
                     case "player-position:":
-                        if (parts.length >= 3) gp.player.updateLocation(Integer.parseInt(parts[1]), Integer.parseInt(parts[2]));
+                        if (parts.length >= 3) gp.player.updateLocation(Integer.parseInt(parts[1])*gp.tileSize, Integer.parseInt(parts[2])*gp.tileSize);
                         System.out.println("player-position: ("+Integer.parseInt(parts[1])/gp.tileSize+" "+Integer.parseInt(parts[2])/gp.tileSize+")");
                         break;
                     case "player-health:":
@@ -148,29 +150,29 @@ public class Config {
                     case "seed:":
                         if (parts.length >= 2) gp.tileM.algorithm.setSeed(Long.parseLong(parts[1]));
                         System.out.println("seed: "+Float.parseFloat(parts[1]));
-                        gp.tileM.algorithm.loadNewMap();
+                        gp.tileM.mapTileNum = gp.tileM.algorithm.generateMap();
                         break;
                     case "M":
                         Silhouette monster = new Silhouette(gp);
-                        if (parts.length >= 3) monster.updateLocation(Integer.parseInt(parts[1]), Integer.parseInt(parts[2]));
+                        if (parts.length >= 3) monster.updateLocation(Integer.parseInt(parts[1])*gp.tileSize, Integer.parseInt(parts[2])*gp.tileSize);
                         gp.aSetter.addEntity(monster);
                         break;
                     case "C":
                         ChestObject chest = new ChestObject(gp);
-                        if (parts.length >= 3) chest.updateLocation(Integer.parseInt(parts[1]), Integer.parseInt(parts[2]));
+                        if (parts.length >= 3) chest.updateLocation(Integer.parseInt(parts[1])*gp.tileSize, Integer.parseInt(parts[2])*gp.tileSize);
                         if (parts.length >= 4 && parts[3].equals("D")) chest.disable();
                         gp.aSetter.addEntity(chest);
                         break;
                     case "D":
                         DoorObject door = new DoorObject(gp);
-                        if (parts.length >= 3) door.updateLocation(Integer.parseInt(parts[1]), Integer.parseInt(parts[2]));
+                        if (parts.length >= 3) door.updateLocation(Integer.parseInt(parts[1])*gp.tileSize, Integer.parseInt(parts[2])*gp.tileSize);
                         gp.tileM.algorithm.door.x = Integer.parseInt(parts[1]);
                         gp.tileM.algorithm.door.y = Integer.parseInt(parts[2]);
                         gp.aSetter.addEntity(door);
                         break;
                     case "K":
                         KeyObject key = new KeyObject(gp);
-                        if (parts.length >= 3) key.updateLocation(Integer.parseInt(parts[1]), Integer.parseInt(parts[2]));
+                        if (parts.length >= 3) key.updateLocation(Integer.parseInt(parts[1])*gp.tileSize, Integer.parseInt(parts[2])*gp.tileSize);
                         if (parts.length >= 4 && parts[3].equals("D")) key.disable();
                         if (parts.length >= 5) key.setId(Integer.parseInt(parts[4]));
                         gp.aSetter.addEntity(key);
@@ -186,7 +188,7 @@ public class Config {
         }
     }
 
-    public void clearGame() {
+    public void clearGameFiles() {
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter("game.txt"));
             bw.write("");

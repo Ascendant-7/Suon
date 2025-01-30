@@ -18,7 +18,6 @@ public class EllersAlgorithm {
     HashMap<Integer, HashSet<Vector2D>> map = new HashMap<>();
     HashMap<Integer, HashSet<Integer>> temp_map = new HashMap<>();
     long seed;
-    Random random;
     ArrayList<Integer> list = new ArrayList<>();
     ArrayList<Vector2D> deadends = new ArrayList<>();
     public ArrayList<Vector2D> monsterLocations = new ArrayList<>();
@@ -31,17 +30,19 @@ public class EllersAlgorithm {
         rows = gp.mapWorldRow;
         cols = gp.mapWorldCol;
         grid = new int[cols][rows];
-        seed = new Random().nextLong();
+
     }
 
-    public void generateNewSeed() { seed = new Random().nextLong(); }
+    public void generateNewSeed() { if (seed == 0) seed = new Random().nextLong(); }
     
-    public int[][] loadNewMap() {
+    public int[][] generateMap() {
         
-        random = new Random(seed);
+        System.out.println("loading seed: " + seed);
+        Random randomizer = new Random(seed);
+        System.err.println(seed+" -> "+randomizer.nextInt(5));
         map.clear();
         initialize();
-        generate();
+        generate(randomizer);
         transform();
         spawnEntities();
         transformV2();
@@ -61,7 +62,7 @@ public class EllersAlgorithm {
             }
         }
     }
-    public void generate() {
+    public void generate(Random randomizer) {
 
         // SET DEFAULT VALUES
         set_id = 1;
@@ -69,11 +70,11 @@ public class EllersAlgorithm {
         for (int row = 1; row < rows-1; row+=2) {
 
             assignSets(row);
-            mergeSets(row);
+            mergeSets(row, randomizer);
 
             if (row == rows-2) break;
 
-            connectVerticalPaths(row);
+            connectVerticalPaths(row, randomizer);
 
             
             temp_map.clear();
@@ -94,7 +95,7 @@ public class EllersAlgorithm {
             }
         }
     }
-    public void mergeSets(int row) {
+    public void mergeSets(int row, Random randomizer) {
 
         // CELL/PATH PAIR ITERATION
         for (int col = 3; col < cols-1; col+=2) {
@@ -104,7 +105,7 @@ public class EllersAlgorithm {
 
             if (current == last) continue;
 
-            if (row == rows-2 || random.nextInt(2) == 0) {
+            if (row == rows-2 || randomizer.nextInt(2) == 0) {
                 map.get(current).add(new Vector2D(col-1, row));
 
             for (Vector2D v : map.get(current)) {
@@ -117,7 +118,7 @@ public class EllersAlgorithm {
             }
         }
     }
-    public void connectVerticalPaths(int row) {
+    public void connectVerticalPaths(int row, Random randomizer) {
 
         // VERTICAL JOINING
         // get all sets within the row
@@ -136,7 +137,7 @@ public class EllersAlgorithm {
         for (Integer set : temp_map.keySet()) {
 
             list.addAll(temp_map.get(set));
-            Collections.shuffle(list);
+            Collections.shuffle(list, randomizer);
 
             for (int i = 0; i < (list.size()+1)/2; i++) {
                 

@@ -27,8 +27,6 @@ public class TileManager {
         getTileImage();
         // loadMap("/maps/test_map.txt");
         algorithm = new EllersAlgorithm(gp);
-        mapTileNum = algorithm.loadNewMap();
-        
     }
 
     public void getTileImage() {

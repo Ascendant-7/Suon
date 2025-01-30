@@ -4,9 +4,9 @@ import javax.swing.JPanel;
 
 import entity.Entity;
 import entity.Player;
-import enums.EntityState;
 import enums.ID;
 import environment.EnvironmentManager;
+import object.DoorObject;
 import tile.TileManager;
 
 import java.awt.Color;
@@ -95,33 +95,32 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     public void loadGame(boolean newGame) {
-        if (!newGame)
-            config.loadGame();
-        else {
-
-            config.clearGame();
+        if (newGame) {
+            config.clearGameFiles();
+            tileM.algorithm.generateNewSeed();
+            tileM.mapTileNum = tileM.algorithm.generateMap();
+            aSetter.spawnEntities();
             for (Entity e : AssetSetter.entities) {
                 if (e.getID() == ID.DOOR) {
-                    e.setColldierStatus(true);
-                    e.setSpriteIndex(0);
+                    ((DoorObject)e).reset(); 
+                    break;
                 }
             }
+            player.setDefaultValues();
         }
-        tileM.algorithm.loadNewMap();
-        if (AssetSetter.entities.isEmpty())
+        else {
+            if (!config.saved) {
+
+            }
+            config.loadSavedGame();
             aSetter.spawnEntities();
+        }
     }
 
-    public void setUpNewGame() {
+    // public void setUpNewGame() {
 
-        player.setDefaultValues();
-        player.clearKeys();
-        player.setState(EntityState.IDLE);
-        player.setSpriteIndex(2);
-        tileM.algorithm.generateNewSeed();
-        loadGame(true);
 
-    }
+    // }
     public void setFullScreen() {
         // GET LOCAL SCREEN DEVICE
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
@@ -214,12 +213,9 @@ public class GamePanel extends JPanel implements Runnable {
         music.loop();
     }
 
-    public void stopMusic(boolean pause) {
-        if (pause)
-            music.pause();
-        else
-            music.stop();
-    }
+    public void stopMusic() { music.stop(); }
+
+    public void PauseMusic() { music.pause(); }
 
     public void playSFX(int i) {
         sfx.setFile(i);

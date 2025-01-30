@@ -27,4 +27,8 @@ public class DoorObject extends Entity{
         super.getImage();
     }
     public int getDoorId() { return door_id; }
+    public void reset() {
+        collided = true;
+        spriteIndex = 0;
+    }
 }
