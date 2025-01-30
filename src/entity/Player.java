@@ -41,8 +41,8 @@ public class Player extends LivingEntity {
     private static final int FATIGUED_SPEED = 2;
     private static final int NORMAL_SPEED = 4;
     private static final int SPRINTING_SPEED = 6;
-    private static final float STAMINA_RECOVERY_RATE = 0.1f;
-    private static final float STAMINA_DEPLETION_RATE = 0.4f;
+    private static final float STAMINA_RECOVERY_RATE = 0.25f;
+    private static final float STAMINA_DEPLETION_RATE = 0.75f;
 
     public Player(GamePanel gp) {
 
@@ -53,7 +53,6 @@ public class Player extends LivingEntity {
 
         screenX = gp.screenWidth/2 - gp.tileSize/2;
         screenY = gp.screenHeight/2 - gp.tileSize/2;
-
         setDefaultValues();
 
     }
@@ -72,6 +71,7 @@ public class Player extends LivingEntity {
         health = maxHealth;
         maxStamina = 100;
         stamina = maxStamina;
+        keys.clear();
     }
 
     @Override
@@ -118,7 +118,7 @@ public class Player extends LivingEntity {
         // DECREASED SPEED ON FATIGUED IF HAVEN'T
         staminaStatus = Speed.FATIGUED;
         // RECOVER STAMINA IF 'SHIFT' ISN'T PRESSED
-        if (!keyH.shiftPressed) stamina += STAMINA_RECOVERY_RATE;
+        stamina += STAMINA_RECOVERY_RATE;
         // IF STAMINA IS OVER 30, PLAYER IS NO LONGER FATIGUED
         if (stamina > FATIGUE_THRESHOLD) fatigued = false;
     }
@@ -177,34 +177,33 @@ public class Player extends LivingEntity {
     public void interactWithKey(KeyObject key) {
 
         if (!key.isEnabled()) return;
-        gp.ui.showMessage("(E) PICK UP KEY");
-        if (!keyH.interactPressed) return;
         int id = ((KeyObject)key).getKeyId();
         keys.add(id);
-        gp.ui.showMessage("You got a key! ID: "+id);
+        gp.ui.showMessage("You found a key!");
         key.disable();
     }
 
     public void interactWithDoor(DoorObject door) {
-        gp.ui.showMessage("(E) OPEN");
-        if (!keyH.interactPressed) return;
         for (Integer ID : keys) {
-            if (ID == door.getDoorId()) {
+            if (ID == -1) {
                 door.collided = false;
                 door.spriteIndex = 1;
                 gp.ui.gameSubState = 1;
+                state = EntityState.WON;
                 gp.stopMusic(false);
                 gp.playSFX(3);
                 return;
             }
         }
-        gp.ui.showMessage("You need a key!");
+        if (keys.isEmpty())
+            gp.ui.showMessage("You don't have any keys.");
+        else
+            gp.ui.showMessage("You don't have the right key. The door is still locked.");
+        
     }
 
     public void interactWithChest(ChestObject chest) {
         if (!chest.isEnabled()) return;
-        gp.ui.showMessage("(E) UNLOCK CHEST");
-        if (!keyH.interactPressed) return;
         for (Integer ID : keys) {
             if (ID == 0) {
                 keys.remove(0);
@@ -214,7 +213,12 @@ public class Player extends LivingEntity {
                 return;
             }
         }
-        gp.ui.showMessage("You need a key!");
+        if (keys.isEmpty())
+            gp.ui.showMessage("You don't have any keys.");
+        else
+            gp.ui.showMessage("You don't have the right key. The chest is still locked.");
+        
+        
     }
 
     public void interactWithMonsters(LivingEntity monster) {
@@ -273,6 +277,11 @@ public class Player extends LivingEntity {
 
     public float getStamina() { return stamina; }
     public int getKeys() { return keys.size(); }
+    public HashSet<Integer> getKeyList() {return keys; }
     public Speed getStaminaStatus() {  return staminaStatus; }
     public EntityState getEntityState() { return state; }
+    public void loadKey(int key) { keys.add(key); }
+    public void loadHealth(float health) { this.health = health; }
+    public void loadStamine(float stamina) {this.stamina = stamina; }
+    public void clearKeys() { keys.clear();}
 }

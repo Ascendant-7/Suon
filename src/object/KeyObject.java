@@ -8,7 +8,7 @@ import main.GamePanel;
 
 public class KeyObject extends Entity{
 
-    static int record = 0;
+    public static int record = 0;
     int key_id;
     boolean enabled = true;
     public KeyObject(GamePanel gp) {
@@ -32,4 +32,5 @@ public class KeyObject extends Entity{
     public int getKeyId() { return key_id; }
     public void disable() {enabled = false; }
     public boolean isEnabled() {return enabled; }
+    public void setId(int id) { key_id = id; }
 }

@@ -4,6 +4,9 @@ import javax.swing.JPanel;
 
 import entity.Entity;
 import entity.Player;
+import enums.EntityState;
+import enums.ID;
+import environment.EnvironmentManager;
 import tile.TileManager;
 
 import java.awt.Color;
@@ -51,6 +54,8 @@ public class GamePanel extends JPanel implements Runnable {
     public Sound music = new Sound();
     public Sound sfx = new Sound();
     public UI ui = new UI(this);
+    public EnvironmentManager eManager = new EnvironmentManager(this);
+    public Config config = new Config(this);
     
     // GAME OBJECTS
     // public Player player = new Player(this);
@@ -63,7 +68,10 @@ public class GamePanel extends JPanel implements Runnable {
     public final int playState = 1;
     public final int pauseState = 2;
     public final int loadingState = 3;
-    public final int optionState = 4;
+
+    // config
+    boolean fullscreen = true;
+    // boolean newGame = true;
 
     // CONSTRUCTOR
     public GamePanel() {
@@ -76,13 +84,44 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     public void setUpGame() {
+        
         gameState = loadingState;
+        eManager.setup();
 
         tempScreen = new BufferedImage(screenWidth, screenHeight, BufferedImage.TYPE_INT_ARGB);
         g2 = (Graphics2D)tempScreen.getGraphics();
-        setFullScreen();
+        if (fullscreen)
+            setFullScreen();
     }
 
+    public void loadGame(boolean newGame) {
+        if (!newGame)
+            config.loadGame();
+        else {
+
+            config.clearGame();
+            for (Entity e : AssetSetter.entities) {
+                if (e.getID() == ID.DOOR) {
+                    e.setColldierStatus(true);
+                    e.setSpriteIndex(0);
+                }
+            }
+        }
+        tileM.algorithm.loadNewMap();
+        if (AssetSetter.entities.isEmpty())
+            aSetter.spawnEntities();
+    }
+
+    public void setUpNewGame() {
+
+        player.setDefaultValues();
+        player.clearKeys();
+        player.setState(EntityState.IDLE);
+        player.setSpriteIndex(2);
+        tileM.algorithm.generateNewSeed();
+        loadGame(true);
+
+    }
     public void setFullScreen() {
         // GET LOCAL SCREEN DEVICE
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
@@ -154,6 +193,9 @@ public class GamePanel extends JPanel implements Runnable {
             for (Entity e : AssetSetter.entities) {
                 e.draw(g2);
             }
+
+            // darkness
+            eManager.draw(g2);
             // UI
             ui.draw(g2);
         }

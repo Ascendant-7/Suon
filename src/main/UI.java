@@ -33,9 +33,7 @@ public class UI {
     float progress = 0f;
     int dots = 0;
 
-    String[] options = {"Fullscreen", "Sounds", "Control", "Back to Menu"};
-
-    boolean fullscreen = true;
+    String[] options = {"Fullscreen", "Sounds", "Control", "Quit"};
 
     public UI(GamePanel gp) {
 
@@ -324,10 +322,10 @@ public class UI {
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         // BACKGROUND
         g2.setColor(Color.black);
-        if (gp.gameState == gp.optionState)
+        if (gp.gameState == gp.pauseState)
             g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
         g2.fillRect(x, y, w, h);
-        if (gp.gameState == gp.optionState)
+        if (gp.gameState == gp.pauseState)
             g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
 
         // OPTION WINDOW
@@ -366,44 +364,46 @@ public class UI {
                 y = gp.screenHeight/2;
                 gp.uTool.drawText(g2, "Enable", x, y, Font.PLAIN, 20, Color.white, false, 2, false, false, false);
                 g2.setColor(Color.white);
-                if (fullscreen)
-                    g2.drawRect(gp.screenWidth/2+100, y-20, 20, 20);
+                if (gp.fullscreen)
+                g2.fillRect(gp.screenWidth/2+100, y-20, 20, 20);
                 else
-                    g2.fillRect(gp.screenWidth/2+100, y-20, 20, 20);
+                    g2.drawRect(gp.screenWidth/2+100, y-20, 20, 20);
                 break;
-            case 1:
-                x = 50;
-                y = gp.screenHeight/2-50;
-                gp.uTool.drawText(g2, "Music", x, y, Font.PLAIN, 20, Color.white, false, 2, false, settingNum == 0, false);
-                g2.setColor(Color.white);
-                g2.drawRect(gp.screenWidth/2+120, y-20, 100, 20);
-                g2.fillRect(gp.screenWidth/2+120, y-20, 20*gp.music.volumeScale, 20);
-                y = gp.screenHeight/2+50;
-                gp.uTool.drawText(g2, "SFX", x, y, Font.PLAIN, 20, Color.white, false, 2, false, settingNum == 1, false);
-                g2.drawRect(gp.screenWidth/2+120, y-20, 100, 20);
-                g2.fillRect(gp.screenWidth/2+120, y-20, 20*gp.sfx.volumeScale, 20);
-                break;
+            case 1:x = 50;
+            y = gp.screenHeight/2-50;
+            gp.uTool.drawText(g2, "Music", x, y, Font.PLAIN, 20, Color.white, false, 2, false, settingNum == 0, false);
+            g2.setColor(Color.white);
+            g2.drawRect(gp.screenWidth/2+120, y-20, 100, 20);
+            g2.fillRect(gp.screenWidth/2+120, y-20, 20*gp.music.volumeScale, 20);
+            y = gp.screenHeight/2+50;
+            gp.uTool.drawText(g2, "SFX", x, y, Font.PLAIN, 20, Color.white, false, 2, false, settingNum == 1, false);
+            g2.drawRect(gp.screenWidth/2+120, y-20, 100, 20);
+            g2.fillRect(gp.screenWidth/2+120, y-20, 20*gp.sfx.volumeScale, 20);
+            break;
             case 2:
                 x = gp.screenWidth/2-50;
                 y = gp.screenHeight/4;
                 gp.uTool.drawText(g2, "Move", x, y, Font.PLAIN, 20, Color.white, false, 0, false, false, false);
                 gp.uTool.drawText(g2, "Confirm (Settings)", x, y+50, Font.PLAIN, 20, Color.white, false, 0, false, false, false);
-                gp.uTool.drawText(g2, "Back (Settings)", x, y+100, Font.PLAIN, 20, Color.white, false, 0, false, false, false);
-                gp.uTool.drawText(g2, "Pause/Resume/Options", x, y+150, Font.PLAIN, 20, Color.white, false, 0, false, false, false);
+                gp.uTool.drawText(g2, "Pause/Resume/Back", x, y+100, Font.PLAIN, 20, Color.white, false, 0, false, false, false);
                 gp.uTool.drawText(g2, "WASD", x+200, y, Font.PLAIN, 20, Color.white, false, 0, false, false, false);
                 gp.uTool.drawText(g2, "ENTER", x+200, y+50, Font.PLAIN, 20, Color.white, false, 0, false, false, false);
-                gp.uTool.drawText(g2, "A", x+200, y+100, Font.PLAIN, 20, Color.white, false, 0, false, false, false);
-                gp.uTool.drawText(g2, "ESC", x+200, y+150, Font.PLAIN, 20, Color.white, false, 0, false, false, false);
+                gp.uTool.drawText(g2, "ESC", x+200, y+100, Font.PLAIN, 20, Color.white, false, 0, false, false, false);
                 break;
             case 3:
-                if (gp.gameState == gp.optionState) {
+                if (gp.gameState == gp.pauseState) {
                     x = 50;
                     y = gp.screenHeight/2;
                     gp.uTool.drawText(g2, "Are you sure?", x, y, Font.PLAIN, 20, Color.white, false, 2, false, false, false);
                 }
                 break;
-            case -1:
+            default:
                 break;
         }
+
+        
+        gp.uTool.drawText(g2, "Back (Escape)", gp.screenWidth/2+150, gp.screenHeight/2+150, Font.PLAIN, 20, Color.white, false, 0, false, false, false);
+    
+        gp.config.saveConfig();
     }
 }

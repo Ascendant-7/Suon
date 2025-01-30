@@ -31,7 +31,9 @@ public class AssetSetter {
     }
 
     public void spawnEntities() {
-        
+        entities.clear();
+        DoorObject.record = -1;
+        KeyObject.record = 0;
         entities.add(gp.player);
         spawnObjectives();
         spawnObstacles();
@@ -72,6 +74,7 @@ public class AssetSetter {
             
         });
     }
+    public void addEntity(Entity e) { entities.add(e); }
     static public Entity getEntityListAt(int index) { return entities.get(index); }
     static public int getEntityListSize() { return entities.size(); }
 }

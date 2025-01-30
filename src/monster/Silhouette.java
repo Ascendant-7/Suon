@@ -4,6 +4,7 @@ import java.util.Random;
 
 import entity.LivingEntity;
 import enums.Direction;
+import enums.EntityState;
 import enums.ID;
 import main.GamePanel;
 
@@ -12,7 +13,8 @@ public class Silhouette extends LivingEntity {
     Direction[] directions = { Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT };
     Random random = new Random();
     Direction[] accessible = new Direction[4];
-    int steps;
+    int steps = 0;
+    int idleDuration = 0;
     int accessIndex = 0;
     public Silhouette (GamePanel gp) {
 
@@ -21,7 +23,9 @@ public class Silhouette extends LivingEntity {
         id = ID.MONSTER;
         speed = 2;
         damage = 25F;
-        steps = random.nextInt(4);
+        health = 100f;
+        // steps = random.nextInt(4);
+        state = EntityState.IDLE;
     }
     @Override
     public void getImage() {
@@ -30,20 +34,38 @@ public class Silhouette extends LivingEntity {
         imagePath[1] = "monster_1";
         super.getImage();
     }
-
+    
+    // @Override 
+    // public void switchSprite() {}
+    // @Override
+    // public void normalizeSprite() {}
+    // @Override
+    // public void resetIdleTrackers() {}
     @Override
-    public void update() {
+    public void idleUpdate() {
         setAction();
-        super.update();
+    }
+    @Override
+    public void checkCollision() {
+        super.checkCollision();
+        if (collided)
+            state = EntityState.IDLE;
     }
     public void setAction() {
 
-        // CHANGE DIRECTION ONCE COUNTER IS UP
-        if (pixelTracker > 0) return;
+        state = EntityState.MOVING;
         if (steps > 0) {
             steps--;
             return;
         }
+        if (idleDuration > 0) {
+            idleDuration--;
+            return;
+        }
+        // if (steps > 0) {
+        //     steps--;
+        //     return;
+        // }
         // CHECK FOR ACCESSIBLE TILES
         for (Direction d : directions) {
             direction = d;
@@ -55,13 +77,14 @@ public class Silhouette extends LivingEntity {
             }
         }
         // RANDOMLY USE ACCESSIBLE TILES
-        int index = random.nextInt(accessIndex); // ACCESS BOUND IS < 1
+        int index = random.nextInt(accessIndex);
         accessIndex = 0;
         direction = accessible[index];
         for (int i = 0; i < accessible.length; i++) {
             accessible[i] = null;
         }
-        steps = random.nextInt(4);
+        steps = random.nextInt(4)+1;
+        idleDuration = random.nextInt(3)*60;
         
     }
 }

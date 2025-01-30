@@ -16,7 +16,7 @@ public class LivingEntity extends Entity {
     protected int attackCooldown = 0;   // cooldown for attacking
     protected int hurtCooldown = 0;     // cooldown for invicibility
     protected int deadDuration = 120;   // dead animation duration
-    private int standCooldown = 20;      // normalize idle state to the first sprite
+    protected int standCooldown = 20;      // normalize idle state to the first sprite
 
     // SPRITE INDICES
     protected static final int UP_1 = 0;
@@ -50,7 +50,10 @@ public class LivingEntity extends Entity {
         switch (state) {
             case DEAD:
                 if (deadDuration > 0) {
-                    spriteIndex = deadDuration > 75 ? DEAD_1 : DEAD_2;
+                    if (deadDuration == 0) {
+                        gp.ui.gameSubState = 2;
+                    }
+                    spriteIndex = deadDuration > 100 ? DEAD_1 : DEAD_2;
                     deadDuration--;
                 }
                 else {
@@ -77,6 +80,10 @@ public class LivingEntity extends Entity {
         }
 
         if (hurtCooldown > 0) hurtCooldown--;
+        if (health <= 0) {
+            System.err.println("You died");
+            state = EntityState.DEAD;
+        }
     }
 
     public void movingUpdate() {

@@ -59,28 +59,34 @@ public class CollisionChecker {
         entityTopRow = entityBounds[topBound] / gp.tileSize;
         entityBottomRow = entityBounds[botBound] / gp.tileSize;
 
-        switch (entity.getDirection()) {
-            case UP:
-                entityTopRow = (entityBounds[topBound] - speed)/gp.tileSize;
-                tileNum1 = gp.tileM.mapTileNum[entityLeftCol][entityTopRow];
-                tileNum2 = gp.tileM.mapTileNum[entityRightCol][entityTopRow];
-                break;
-            case DOWN:
-                entityBottomRow = (entityBounds[botBound] + speed)/gp.tileSize;
-                tileNum1 = gp.tileM.mapTileNum[entityLeftCol][entityBottomRow];
-                tileNum2 = gp.tileM.mapTileNum[entityRightCol][entityBottomRow];
-                break;
-            case LEFT:
-                entityLeftCol= (entityBounds[leftBound] - speed)/gp.tileSize;
-                tileNum1 = gp.tileM.mapTileNum[entityLeftCol][entityTopRow];
-                tileNum2 = gp.tileM.mapTileNum[entityLeftCol][entityBottomRow];
-                break;
-            case RIGHT:
-                entityRightCol = (entityBounds[rightBound] + speed)/gp.tileSize;
-                tileNum1 = gp.tileM.mapTileNum[entityRightCol][entityTopRow];
-                tileNum2 = gp.tileM.mapTileNum[entityRightCol][entityBottomRow];
-                break;
+        try {
+            switch (entity.getDirection()) {
+                case UP:
+                    entityTopRow = (entityBounds[topBound] - speed)/gp.tileSize;
+                    tileNum1 = gp.tileM.mapTileNum[entityLeftCol][entityTopRow];
+                    tileNum2 = gp.tileM.mapTileNum[entityRightCol][entityTopRow];
+                    break;
+                case DOWN:
+                    entityBottomRow = (entityBounds[botBound] + speed)/gp.tileSize;
+                    tileNum1 = gp.tileM.mapTileNum[entityLeftCol][entityBottomRow];
+                    tileNum2 = gp.tileM.mapTileNum[entityRightCol][entityBottomRow];
+                    break;
+                case LEFT:
+                    entityLeftCol= (entityBounds[leftBound] - speed)/gp.tileSize;
+                    tileNum1 = gp.tileM.mapTileNum[entityLeftCol][entityTopRow];
+                    tileNum2 = gp.tileM.mapTileNum[entityLeftCol][entityBottomRow];
+                    break;
+                case RIGHT:
+                    entityRightCol = (entityBounds[rightBound] + speed)/gp.tileSize;
+                    tileNum1 = gp.tileM.mapTileNum[entityRightCol][entityTopRow];
+                    tileNum2 = gp.tileM.mapTileNum[entityRightCol][entityBottomRow];
+                    break;
+            }
+        } catch (ArrayIndexOutOfBoundsException e) {
+            System.err.println("monster at "+entity.getWorldX()+" "+entity.getWorldY());
+            e.printStackTrace();
         }
+        
         
         return gp.tileM.tile[tileNum1].collision || gp.tileM.tile[tileNum2].collision;
     }
@@ -102,6 +108,7 @@ public class CollisionChecker {
                 collider.x += entity.getSpeed();
                 break;
         }
+        
         for (Entity e : entities) {
 
             if (e == null || e.getID() == entity.getID()) continue;
@@ -110,7 +117,10 @@ public class CollisionChecker {
                 if (entity.getID() == ID.PLAYER) {
                     ((Player)entity).interactWith(e);
                 }
-                return e.getColliderStatus();
+                if ((entity.getID() == ID.MONSTER && e.getID() == ID.PLAYER))
+                    ((Player)e).interactWith(entity);
+                if (e.getID() != ID.PLAYER && e.getID() != ID.MONSTER)
+                    return e.getColliderStatus();
             }
         }
         return false;
@@ -138,4 +148,5 @@ public class CollisionChecker {
         boolean rightIntersected = entityBounds[rightBound] >= targetBounds[leftBound] && entityBounds[rightBound] <= targetBounds[rightBound];
         return topIntersected || botIntersected || leftIntersected || rightIntersected;
     }
+    
 }

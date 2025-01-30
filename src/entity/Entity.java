@@ -97,6 +97,8 @@ public class Entity {
     public int getColliderBottomBound() { return collider.y + collider.height; }
 
     public boolean getColliderStatus() { return collided; }
+    public void setColldierStatus(boolean collided) { this.collided = collided; }
     public Rectangle getCollider() { return collider; }
     public ID getID() {return id; }
+    public void setSpriteIndex(int index) { spriteIndex = index; }
 }

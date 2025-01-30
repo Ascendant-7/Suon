@@ -10,10 +10,13 @@ public class Main {
         window = new JFrame("Suon");
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         window.setResizable(false);
-        window.setUndecorated(true);
         
         GamePanel gamePanel = new GamePanel();
         window.add(gamePanel);
+
+        gamePanel.config.loadConfig();
+        if (gamePanel.fullscreen)
+            window.setUndecorated(true);
 
         window.pack();
 
@@ -22,6 +25,5 @@ public class Main {
 
         gamePanel.setUpGame();
         gamePanel.startGameThread();
-
     }
 }
