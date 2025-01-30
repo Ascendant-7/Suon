@@ -204,7 +204,7 @@ public class EllersAlgorithm {
         chestNExit.add(deadends.get(0));
         deadends.remove(0);
         
-        deadends.removeIf(v -> (v.y == 1 || v.y == 49) && Math.abs(chestNExit.getLast().x - v.x) < 20 && Math.abs(chestNExit.getLast().y - v.y) < 20);
+        deadends.removeIf(v -> (v.y == 1 || v.y == 49) && Math.abs(chestNExit.get(chestNExit.size()-1).x - v.x) < 20 && Math.abs(chestNExit.get(chestNExit.size()-1).y - v.y) < 20);
         door = deadends.get(0);
         if (door.y == 1) door.y = 0;
         else door.y = 50;

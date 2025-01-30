@@ -214,6 +214,13 @@ public class UI {
             y += gp.tileSize*2;
             gp.uTool.drawText(g2, "Back", x, y, Font.BOLD, 42F, Color.white, false, 1, false, commandNum == 2, false);
         }
+        else if (gameSubState == 3) {
+            g2.setColor(Color.black);
+            g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+
+            gp.uTool.drawText(g2, "Rules & Tutorial", 0, 100, Font.BOLD, 80, Color.white, false, 1, false, false, false);
+
+        }
         else if (gameSubState == 4) {
             drawOptionsScreen();
         }
