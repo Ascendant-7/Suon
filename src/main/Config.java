@@ -118,11 +118,12 @@ public class Config {
         try {
             BufferedReader br = new BufferedReader(new FileReader("game.txt"));
             String line = br.readLine();
-            saved = line == null || !line.equals("yes");
-            if (!saved) {
+            if (line == null || !line.equals("yes")) {
+                saved = false;
                 br.close();
                 return;
             }
+            saved = true;
             AssetSetter.entities.clear();
             AssetSetter.entities.add(gp.player);
             System.out.println("loading game...");
@@ -191,6 +192,7 @@ public class Config {
     public void clearGameFiles() {
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter("game.txt"));
+            System.err.println("clearing game files...");
             bw.write("");
             bw.close();
         } catch (IOException e) {

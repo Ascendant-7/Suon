@@ -33,7 +33,7 @@ public class EllersAlgorithm {
 
     }
 
-    public void generateNewSeed() { if (seed == 0) seed = new Random().nextLong(); }
+    public void generateNewSeed() { seed = new Random().nextLong(); }
     
     public int[][] generateMap() {
         

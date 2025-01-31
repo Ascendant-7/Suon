@@ -95,7 +95,10 @@ public class KeyHandler implements KeyListener{
                 System.out.println("you died in the last game, creating a new one...");
                 gp.loadGame(true);
             }
-            else gp.loadGame(false);
+            else {
+                gp.loadGame(false);
+                System.err.println("loading saved game...");
+            }
         }
         gp.gameState = gp.loadingState;
         gp.ui.gameSubState = 1;

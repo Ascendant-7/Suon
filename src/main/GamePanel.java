@@ -109,11 +109,13 @@ public class GamePanel extends JPanel implements Runnable {
             player.setDefaultValues();
         }
         else {
-            if (!config.saved) {
-
-            }
             config.loadSavedGame();
+            if (!config.saved) {
+                loadGame(true);
+                return;
+            }
             aSetter.spawnEntities();
+            
         }
     }
 
