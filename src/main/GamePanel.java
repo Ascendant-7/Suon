@@ -114,8 +114,6 @@ public class GamePanel extends JPanel implements Runnable {
                 loadGame(true);
                 return;
             }
-            aSetter.spawnEntities();
-            
         }
     }
 

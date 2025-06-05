@@ -1,0 +1,14 @@
+make a better config and game text file structure (use json)
+decrease update/render time (current is 3-4ms)
+
+migrate fullscreen to config/settings
+
+scaling tile size should be done for display purposes
+
+winning and pausing while movement keys are active glitches the game
+
+reloading the game sometimes spawn the entities somewhere else off the map
+
+use maps
+
+implement reset functions

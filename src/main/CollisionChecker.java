@@ -83,7 +83,7 @@ public class CollisionChecker {
                     break;
             }
         } catch (ArrayIndexOutOfBoundsException e) {
-            System.err.println("monster at "+entity.getWorldX()+" "+entity.getWorldY());
+            System.err.println("array error: monster out of bound, monster at "+entity.getWorldX()+" "+entity.getWorldY());
             e.printStackTrace();
         }
         

@@ -104,6 +104,11 @@ public class KeyHandler implements KeyListener{
         gp.ui.gameSubState = 1;
         gp.ui.visibleDuration = 25;
         gp.ui.commandNum = 0;
+        upPressed = false;
+        downPressed = false;
+        leftPressed = false;
+        rightPressed = false;
+        shiftPressed = false;
     }
 
 
@@ -297,16 +302,16 @@ public class KeyHandler implements KeyListener{
         // }
 
         if (gp.gameState == gp.playState && gp.ui.gameSubState == 0) {
-            if (code == KeyEvent.VK_W) {
+            if (code == KeyEvent.VK_W || code == KeyEvent.VK_UP) {
                 upPressed = false;
             }
-            if (code == KeyEvent.VK_S) {
+            if (code == KeyEvent.VK_S || code == KeyEvent.VK_DOWN) {
                 downPressed = false;
             }
-            if (code == KeyEvent.VK_A) {
+            if (code == KeyEvent.VK_A || code == KeyEvent.VK_LEFT) {
                 leftPressed = false;
             }
-            if (code == KeyEvent.VK_D) {
+            if (code == KeyEvent.VK_D || code == KeyEvent.VK_RIGHT) {
                 rightPressed = false;
             }
             if (code == KeyEvent.VK_SHIFT) {

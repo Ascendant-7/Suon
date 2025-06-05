@@ -162,11 +162,35 @@ public class LivingEntity extends Entity {
         }
     }
 
+    @Override
+    public void snapToGrid() {
+        int tempSpeed = 0;
+        if (worldX % 48 != 0) {
+            worldX = (int) (Math.floor(worldX / 48.0) * 48);
+            tempSpeed = speed;
+            speed = 0;
+            if (gp.cChecker.checkTile(this)) {
+                worldX += 48;
+            }
+            speed = tempSpeed;
+        }
+        if (worldY % 48 != 0) {
+            worldY = (int) (Math.floor(worldY / 48.0) * 48);
+            tempSpeed = speed;
+            speed = 0;
+            if (gp.cChecker.checkTile(this)) {
+                worldY += 48;
+            }
+            speed = tempSpeed;
+        }
+    }
+
     public Direction getDirection() { return direction; }
     public int getSpeed() { return speed; }
     public void setState(EntityState state) { this.state = state; }
     public float getHealth() { return health; }
     public int getPixelTracker() { return pixelTracker; }
+    public void resetPixelTracker() { this.pixelTracker = 48; }
     public boolean getTileCollided() { return tileCollided; }
     public boolean getEntityCollided() { return entityCollided; }
 }

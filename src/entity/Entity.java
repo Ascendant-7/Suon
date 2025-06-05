@@ -86,6 +86,9 @@ public class Entity {
         worldY = y;
     }
 
+    public void snapToGrid() {};
+    public void resetPixelTracker() {};
+
     public int getWorldX() { return worldX; }
     public int getWorldY() {return worldY; }
     public int getScreenX() { return screenX; }

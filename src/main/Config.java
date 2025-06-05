@@ -69,13 +69,14 @@ public class Config {
 
             bw.write("player-stamina: "+gp.player.getStamina());
             bw.newLine();
-            System.out.println("player-health: "+gp.player.getStamina());
+            System.out.println("player-stamina: "+gp.player.getStamina());
 
             bw.write("seed: "+gp.tileM.algorithm.getSeed());
-            System.out.println("player-health: "+gp.tileM.algorithm.getSeed());
+            System.out.println("seed: "+gp.tileM.algorithm.getSeed());
             bw.newLine();
             
             for (Entity entity : AssetSetter.entities) {
+                entity.resetPixelTracker();
                 ID id = entity.getID();
                 if (id == ID.PLAYER) continue;
                 int x = entity.getWorldX()/gp.tileSize;
